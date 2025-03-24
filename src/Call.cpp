@@ -1,11 +1,32 @@
 #include "Call.h"
+#include "Type.h"
+
+#include <cassert>
+#include <iostream>
+#include <memory>
 
 using namespace ABI;
 
-ABIArgInfo X86_64ABIInfo::ClassifyArgumentType(std::shared_ptr<Type *> type) {
+// The arugments here is in think
+X86_64ABIInfo::Class
+X86_64ABIInfo::ClassifyArgumentType(std::shared_ptr<Type> type) {
 
-  return ABIArgInfo();
+  assert(type && "null type is undefined!");
+
+  if (type->isIntegerType()) {
+    std::shared_ptr<::Integer> intergerType =
+        std::dynamic_pointer_cast<::Integer>(type);
+
+    if (intergerType->getSize() <= 8)
+      return Integer;
+
+    // FIXME: what about types that are _BitInt(128), etc.
+    assert(false && "how to represent type that are less than 8 bytes  ");
+  }
+
+  assert(false && "Todo: b re");
 }
+
 // Mainly taken from clang
 void X86_64ABIInfo::ComputeInfo(FunctionInfo &FI) {
   // Keep track of the number of assigned registers.
@@ -45,7 +66,7 @@ void X86_64ABIInfo::ComputeInfo(FunctionInfo &FI) {
   // if (FI.isChainCall())
   //   ++FreeIntRegs;
 
-  // unsigned NumRequiredArgs = FI.getNumRequiredArgs();
+  // unsigned NumRequiredArgs = FI.getNumR!equiredArgs();
 
   // AMD64-ABI 3.2.3p3: Once arguments are classified, the registers
   // get assigned (in left-to-right order) for passing as follows...
@@ -53,7 +74,15 @@ void X86_64ABIInfo::ComputeInfo(FunctionInfo &FI) {
   for (FunctionInfo::ArgIter it = FI.GetArgBegin(), ie = FI.GetArgEnd();
        it != ie; ++it, ++ArgNo) {
 
-    it->Info = ClassifyArgumentType(it->Ty);
+    Class type = ClassifyArgumentType(it->Ty);
+    std::cout << "I am processing this arugment: " << ArgNo << std::endl;
+
+    switch (type) {
+    case ABI::X86_64ABIInfo::Class::Integer:
+      break;
+    default:
+      assert(false && "unreachable statement. Not implemented yet");
+    }
 
     // FIXME: what about structure type?
     // if (IsRegCall && it->type->isStructureOrClassType())

@@ -8,6 +8,7 @@
 namespace ABI {
 class ABIArgInfo {
 public:
+  // Taken from clang and the system-v abi
   enum Kind : uint8_t {
     /// Direct - Pass the argument directly using the normal converted LLVM
     /// type, or by coercing to another specified type stored in
@@ -84,7 +85,7 @@ enum CallingConvention {
 };
 
 struct FunctionArgInfo {
-  std::shared_ptr<Type *> Ty;
+  std::shared_ptr<Type> Ty;
   ABIArgInfo Info;
 };
 
@@ -93,14 +94,15 @@ public:
   using ArgIter = std::vector<FunctionArgInfo>::iterator;
 
   // TODO: you are missing a lot of stuff, variadic, etc
-  FunctionInfo(std::vector<std::shared_ptr<Type *>> args, Type *ret,
-               CallingConvention conv);
+  FunctionInfo(std::vector<std::shared_ptr<Type>> args,
+               std::shared_ptr<Type> ret, CallingConvention conv);
 
   ArgIter GetArgBegin();
   ArgIter GetArgEnd();
 
   // the heart of the this library
   ABIArgInfo getReturnInfo() const;
+  // ABIArgInfo getReturnInfo() const;
 
 private:
   CallingConvention Conv;
@@ -109,7 +111,7 @@ private:
 
   // TODO: Return Value may be on two registers or more. How are you going to
   // handle that?
-  Type *Ret;
+  std::shared_ptr<Type> Ret;
 };
 } // namespace ABI
 

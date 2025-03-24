@@ -36,7 +36,8 @@ public:
 
   virtual void ComputeInfo(FunctionInfo &FI) override;
 
-  ABIArgInfo ClassifyArgumentType(std::shared_ptr<Type *> type);
+  Class ClassifyArgumentType(std::shared_ptr<Type> type);
+
 private:
 };
 } // namespace ABI

@@ -3,4 +3,4 @@ add_executable(
     test.cpp
 )
 
-target_link_libraries(test LLVMAbi)
+target_link_libraries(test REQUIRED LLVMAbi)
