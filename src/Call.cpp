@@ -1,4 +1,5 @@
 #include "Call.h"
+#include "Function.h"
 #include "Type.h"
 
 #include <cassert>
@@ -7,12 +8,10 @@
 
 using namespace ABI;
 
-// The arugments here is in think
 X86_64ABIInfo::Class
 X86_64ABIInfo::ClassifyArgumentType(std::shared_ptr<Type> type) {
 
-  assert(type && "null type is undefined!");
-
+  assert(type && "null type is undefined for now!");
   if (type->isIntegerType()) {
     std::shared_ptr<::Integer> intergerType =
         std::dynamic_pointer_cast<::Integer>(type);
@@ -35,38 +34,15 @@ void X86_64ABIInfo::ComputeInfo(FunctionInfo &FI) {
   unsigned NeededInt = 0, NeededSSE = 0, MaxVectorWidth = 0;
 
   // TODO: fix me
-  // if (IsRegCall && FI.getReturnType()->getTypePtr()->isRecordType() &&
-  //    !FI.getReturnType()->getTypePtr()->isUnionType()) {
-  //  FI.getReturnInfo() = classifyRegCallStructType(
-  //      FI.getReturnType(), NeededInt, NeededSSE, MaxVectorWidth);
-  //  if (FreeIntRegs >= NeededInt && FreeSSERegs >= NeededSSE) {
-  //    FreeIntRegs -= NeededInt;
-  //    FreeSSERegs -= NeededSSE;
-  //  } else {
-  //    FI.getReturnInfo() = getIndirectReturnResult(FI.getReturnType());
-  //  }
-  //} else if (IsRegCall && FI.getReturnType()->getAs<ComplexType>() &&
-  //           getContext().getCanonicalType(
-  //               FI.getReturnType()->getAs<ComplexType>()->getElementType())
-  //               == getContext().LongDoubleTy)
-  //  // Complex Long Double Type is passed in Memory when Regcall
-  //  // calling convention is used.
-  //  FI.getReturnInfo() = getIndirectReturnResult(FI.getReturnType());
-  // else
-  //  FI.getReturnInfo() = classifyReturnType(FI.getReturnType());
-
-  // If the return value is indirect, then the hidden argument is consuming one
-  // integer register.
-  // if (FI.getReturnInfo().isIndirect())
-  //   --FreeIntRegs;
-  // else if (NeededSSE && MaxVectorWidth > 0)
-  //   FI.setMaxVectorWidth(MaxVectorWidth);
-
-  // // The chain argument effectively gives us another free register.
-  // if (FI.isChainCall())
-  //   ++FreeIntRegs;
-
-  // unsigned NumRequiredArgs = FI.getNumR!equiredArgs();
+  // Lower Return
+  switch (ClassifyArgumentType(FI.getReturnInfo().Ty)) {
+  case Class::Integer:
+    // FI.setReturn()
+  default:
+    assert(false && "unreachable statements. Please implement this!");
+  }
+  // switch (ClassifyArgumentType(FI.getReturnInfo)) {
+  //}
 
   // AMD64-ABI 3.2.3p3: Once arguments are classified, the registers
   // get assigned (in left-to-right order) for passing as follows...
@@ -79,35 +55,18 @@ void X86_64ABIInfo::ComputeInfo(FunctionInfo &FI) {
 
     switch (type) {
     case ABI::X86_64ABIInfo::Class::Integer:
+      // defined by AMD64-ABI:
+      if (FreeIntRegs > 0) {
+        // Use Register
+        it->Info = ABIArgInfo(Direct);
+      } else {
+        // Pushed to the stack
+        it->Info = ABIArgInfo(Indirect);
+      }
+      --FreeIntRegs;
       break;
     default:
       assert(false && "unreachable statement. Not implemented yet");
     }
-
-    // FIXME: what about structure type?
-    // if (IsRegCall && it->type->isStructureOrClassType())
-    //   it->info = classifyRegCallStructType(it->type, NeededInt, NeededSSE,
-    //                                        MaxVectorWidth);
-    // else
-    // classifyArgumentType(it->type, FreeIntRegs, NeededInt, NeededSSE,
-    // IsNamedArg);
-
-    // AMD64-ABI 3.2.3p3: If there are no
-    // registers available for any eightbyte of
-    // an argument, the whole argument is passed
-    // on the stack. If registers have already
-    // been assigned for some eightbytes of such
-    // an argument, the assignments get
-    // reverted. if (FreeIntRegs >= NeededInt &&
-    // FreeSSERegs >= NeededSSE) {
-    //   FreeIntRegs -= NeededInt;
-    //   FreeSSERegs -= NeededSSE;
-    //   if (MaxVectorWidth >
-    //   FI.getMaxVectorWidth())
-    //     FI.setMaxVectorWidth(MaxVectorWidth);
-    // } else {
-    //   it->info = getIndirectResult(it->type,
-    //   FreeIntRegs);
-    // }
   }
 }

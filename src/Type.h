@@ -7,12 +7,14 @@ namespace ABI {
 
 class Type {
 public:
-  // TODO: are we really going to use integer type?
-  virtual bool isIntegerType() const;
-  virtual bool isAggregateType() const;
+  // TODO: handle this better later on
+  virtual bool isIntegerType() const = 0;
+  virtual bool isAggregateType() const = 0;
+
+private:
 };
 
-class Integer : Type {
+class Integer : public Type {
 public:
   Integer(uint64_t size);
 

@@ -12,13 +12,13 @@ class ABIArgInfo;
 // for a target to implement basically
 class ABIInfo {
 public:
-  virtual void ComputeInfo(FunctionInfo &FI);
+  virtual void ComputeInfo(FunctionInfo &FI) = 0;
 
 private:
 };
 
 // System-V AMD 64 ABI
-class X86_64ABIInfo : ABIInfo {
+class X86_64ABIInfo : public ABIInfo {
 public:
   // type are defined in the system-v abi
   enum Class {

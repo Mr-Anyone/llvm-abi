@@ -2,6 +2,7 @@ set(
     LIB_SOURCE_FILES
     Call.cpp
     Type.cpp
+    Function.cpp
 )
 
 add_library(
