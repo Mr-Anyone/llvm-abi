@@ -52,7 +52,7 @@ auto ArgIterator = FI.GetArgBegin();
 assert(ArgIterator->Info.GetKind() == ABI::Indirect); // Structs larger than 4 bytes are passed by reference
 ```
 
-see [test.cpp](test/test.cpp) for more example on how this is done.
+See [`Test.cpp`](./test/test.cpp) for more example on how this is done.
 ## Building  
 
 To build the project, run:  
