@@ -6,7 +6,7 @@
 #include <memory>
 
 void TestOne() {
-  // handled by front end
+  // Create a function with 7 uint32_t
   std::vector<std::shared_ptr<ABI::Type>> args{};
   for (int i = 0; i < 7; ++i) {
     std::shared_ptr<ABI::Type> arg = std::make_shared<ABI::Integer>(4);
@@ -34,6 +34,35 @@ void TestOne() {
   std::cout << "Passed test one!" << std::endl;
 }
 
-void RunTest() { TestOne(); }
+void TestTwo() {
+  // Test Two
+  // handled by front end
+  std::vector<std::shared_ptr<ABI::Type>> args{};
+  for (int i = 0; i < 10; ++i) {
+    std::shared_ptr<ABI::Type> arg = std::make_shared<ABI::Integer>(4);
+    args.push_back(arg);
+  }
+  std::shared_ptr<ABI::StructType> arg_one =
+      std::make_shared<ABI::StructType>(args);
+  args.clear();
+  args.push_back(arg_one);
+
+  std::shared_ptr<ABI::Type> returnType = std::make_shared<ABI::Integer>(8);
+  ABI::FunctionInfo FI(args, returnType, ABI::CallingConvention::C);
+
+  ABI::X86_64ABIInfo abiLowering;
+  abiLowering.ComputeInfo(FI);
+
+  assert(FI.getReturnInfo().Info.GetKind() == ABI::Direct);
+
+  // struct larger than 4 bytes in the memory
+  auto ArgIterator = FI.GetArgBegin();
+  assert(ArgIterator->Info.GetKind() == ABI::Indirect);
+}
+
+void RunTest() {
+  TestOne();
+  TestTwo();
+}
 
 int main() { RunTest(); }
