@@ -6,9 +6,9 @@ This is a prototype LLVM ABI lowering library focused on the **System V ABI**. I
 
 ## Features  
 
-- A **basic type system** designed specifically for ABI lowering (see [`Type.cpp`](./src/Type.cpp))  
+- A **basic type system** designed specifically for ABI lowering (see [`Type.cpp`](./src/Type.h))  
 - Can be extended to different calling conventions and targets.
-- **System V ABI lowering implementation** following AMD-SystemV conventions  
+- **System V ABI lowering implementation** following AMD-SystemV conventions  (see [`Call.cpp`](./src/Call.h))  
 - **No external dependencies** – the library is fully self-contained  
 
 ## Overview  
@@ -52,7 +52,7 @@ auto ArgIterator = FI.GetArgBegin();
 assert(ArgIterator->Info.GetKind() == ABI::Indirect); // Structs larger than 4 bytes are passed by reference
 ```
 
-see [test.cpp](test/test.cpp) for more example on how this is done.
+See [`Test.cpp`](./test/test.cpp) for more example on how this is done.
 ## Building  
 
 To build the project, run:  
