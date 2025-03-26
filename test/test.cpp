@@ -37,17 +37,15 @@ void TestOne() {
 void TestTwo() {
   // Test Two
   // handled by front end
-  std::vector<std::shared_ptr<ABI::Type>> args{};
-  for (int i = 0; i < 10; ++i) {
-    std::shared_ptr<ABI::Type> arg = std::make_shared<ABI::Integer>(4);
-    args.push_back(arg);
-  }
+  std::shared_ptr<ABI::Type> arg = std::make_shared<ABI::Integer>(/*size*/ 8);
+  std::vector<std::shared_ptr<ABI::Type>> args{arg, arg, arg, arg, arg};
   std::shared_ptr<ABI::StructType> arg_one =
       std::make_shared<ABI::StructType>(args);
   args.clear();
   args.push_back(arg_one);
 
-  std::shared_ptr<ABI::Type> returnType = std::make_shared<ABI::Integer>(8);
+  std::shared_ptr<ABI::Type> returnType =
+      std::make_shared<ABI::Integer>(/*size*/ 8);
   ABI::FunctionInfo FI(args, returnType, ABI::CallingConvention::C);
 
   ABI::X86_64ABIInfo abiLowering;
@@ -57,7 +55,8 @@ void TestTwo() {
 
   // struct larger than 4 bytes in the memory
   auto ArgIterator = FI.GetArgBegin();
-  assert(ArgIterator->Info.GetKind() == ABI::Indirect);
+  ABI::ABIArgInfo abiInfo = ArgIterator->Info;
+  assert(abiInfo.GetKind() == ABI::Indirect);
 
   std::cout << "Passed test two" << std::endl;
 }
