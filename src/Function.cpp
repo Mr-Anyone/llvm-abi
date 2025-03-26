@@ -24,6 +24,6 @@ ABIArgInfo::ABIArgInfo(ABIArgKind kind) : Kind(kind) {}
 
 FunctionArgInfo FunctionInfo::getReturnInfo() const { return RetInfo; }
 
-void FunctionInfo::setABIArgInfo(ABIArgInfo info) const {
+void FunctionInfo::setABIReturnInfo(const ABIArgInfo &info) {
   RetInfo.Info = info;
 }

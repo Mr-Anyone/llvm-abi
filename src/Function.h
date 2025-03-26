@@ -99,7 +99,7 @@ public:
   ArgIter GetArgEnd();
 
   FunctionArgInfo getReturnInfo() const;
-  void setABIArgInfo(ABIArgInfo &info);
+  void setABIReturnInfo(const ABIArgInfo &info);
 
 private:
   CallingConvention Conv;

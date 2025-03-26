@@ -33,16 +33,14 @@ void X86_64ABIInfo::ComputeInfo(FunctionInfo &FI) {
   unsigned FreeSSERegs = 8;
   unsigned NeededInt = 0, NeededSSE = 0, MaxVectorWidth = 0;
 
-  // TODO: fix me
   // Lower Return
   switch (ClassifyArgumentType(FI.getReturnInfo().Ty)) {
   case Class::Integer:
-    // FI.setReturn()
+    FI.setABIReturnInfo(ABIArgInfo(Direct)); // eax register
+    break;
   default:
-    assert(false && "unreachable statements. Please implement this!");
+    assert(false && "Please implememnt other types");
   }
-  // switch (ClassifyArgumentType(FI.getReturnInfo)) {
-  //}
 
   // AMD64-ABI 3.2.3p3: Once arguments are classified, the registers
   // get assigned (in left-to-right order) for passing as follows...
@@ -51,7 +49,6 @@ void X86_64ABIInfo::ComputeInfo(FunctionInfo &FI) {
        it != ie; ++it, ++ArgNo) {
 
     Class type = ClassifyArgumentType(it->Ty);
-    std::cout << "I am processing this arugment: " << ArgNo << std::endl;
 
     switch (type) {
     case ABI::X86_64ABIInfo::Class::Integer:
