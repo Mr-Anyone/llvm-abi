@@ -12,7 +12,7 @@ X86_64ABIInfo::Class
 X86_64ABIInfo::ClassifyArgumentType(std::shared_ptr<Type> type) {
 
   assert(type && "null type is undefined for now!");
-  if (type->isIntegerType()) {
+  if (type->isIntegerType() && !type->isAggregateType()) {
     std::shared_ptr<::Integer> intergerType =
         std::dynamic_pointer_cast<::Integer>(type);
 
@@ -21,6 +21,16 @@ X86_64ABIInfo::ClassifyArgumentType(std::shared_ptr<Type> type) {
 
     // FIXME: what about types that are _BitInt(128), etc.
     assert(false && "how to represent type that are less than 8 bytes  ");
+  }
+
+  if (type->isAggregateType()) {
+    std::shared_ptr<::StructType> structType =
+        std::dynamic_pointer_cast<::StructType>(type);
+
+    // TODO: check if this is 4 strict or less strict
+    if (structType->getSize() >= 4 * 8) {
+      return Memory;
+    }
   }
 
   assert(false && "Todo: b re");
@@ -61,6 +71,9 @@ void X86_64ABIInfo::ComputeInfo(FunctionInfo &FI) {
         it->Info = ABIArgInfo(Indirect);
       }
       --FreeIntRegs;
+      break;
+    case ABI::X86_64ABIInfo::Class::Memory:
+      it->Info = ABIArgInfo(Indirect);
       break;
     default:
       assert(false && "unreachable statement. Not implemented yet");

@@ -18,6 +18,7 @@ FunctionInfo::ArgIter FunctionInfo::GetArgBegin() { return Args.begin(); }
 FunctionInfo::ArgIter FunctionInfo::GetArgEnd() { return Args.end(); }
 
 ABIArgInfo::ABIArgInfo() {}
+
 ABIArgKind ABIArgInfo::GetKind() const { return Kind; }
 
 ABIArgInfo::ABIArgInfo(ABIArgKind kind) : Kind(kind) {}
@@ -27,3 +28,5 @@ FunctionArgInfo FunctionInfo::getReturnInfo() const { return RetInfo; }
 void FunctionInfo::setABIReturnInfo(const ABIArgInfo &info) {
   RetInfo.Info = info;
 }
+
+

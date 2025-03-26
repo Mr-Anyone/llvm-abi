@@ -62,6 +62,7 @@ enum ABIArgKind : uint8_t {
   KindFirst = Direct,
   KindLast = InAlloca
 };
+
 class ABIArgInfo {
 public:
 private:

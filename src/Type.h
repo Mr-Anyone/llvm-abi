@@ -1,7 +1,9 @@
 #ifndef TYPE_H
 #define TYPE_H
 
+#include <memory>
 #include <stdint.h>
+#include <vector>
 
 namespace ABI {
 
@@ -29,6 +31,26 @@ public:
 private:
   // size of the integer in bytes
   uint64_t Size;
+};
+
+class StructType : public Type {
+public:
+  using ElementIterator = std::vector<std::shared_ptr<Type>>::iterator;
+
+  // TODO: do we have to make a copy?
+  StructType(std::vector<std::shared_ptr<Type>> elements);
+
+  bool isHomogeneousType();
+  uint64_t getSize() const;
+
+  ElementIterator getStart();
+  ElementIterator getEnd();
+
+  virtual bool isIntegerType() const override;
+  virtual bool isAggregateType() const override;
+
+private:
+  std::vector<std::shared_ptr<Type>> elements;
 };
 
 } // namespace ABI
