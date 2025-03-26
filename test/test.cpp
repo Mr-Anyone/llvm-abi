@@ -58,6 +58,8 @@ void TestTwo() {
   // struct larger than 4 bytes in the memory
   auto ArgIterator = FI.GetArgBegin();
   assert(ArgIterator->Info.GetKind() == ABI::Indirect);
+
+  std::cout << "Passed test two" << std::endl;
 }
 
 void RunTest() {
