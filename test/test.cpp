@@ -46,7 +46,7 @@ void TestTwo() {
 
   std::shared_ptr<ABI::Type> returnType =
       std::make_shared<ABI::Integer>(/*size*/ 8);
-  ABI::FunctionInfo FI(args, returnType, ABI::CallingConvention::C);
+  ABI::FunctionInfo FI({arg_one}, returnType, ABI::CallingConvention::C);
 
   ABI::X86_64ABIInfo abiLowering;
   abiLowering.ComputeInfo(FI);
