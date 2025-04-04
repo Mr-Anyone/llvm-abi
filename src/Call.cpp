@@ -3,7 +3,6 @@
 #include "Type.h"
 
 #include <cassert>
-#include <iostream>
 #include <memory>
 
 using namespace ABI;
