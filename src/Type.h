@@ -120,6 +120,7 @@ public:
 
   bool isIntegerType() const override;
   bool isAggregateType() const override;
+  bool isFloat() const override;
 
   static bool classof(const Type *type);
 

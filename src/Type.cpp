@@ -42,9 +42,23 @@ StructType::ElementIterator StructType::getStart() { return elements.begin(); }
 StructType::ElementIterator StructType::getEnd() { return elements.end(); }
 
 uint64_t StructType::getSize() const {
-  assert(false);
-  return 0;
+  uint64_t size = 0;
+  for (Type *ele : elements) {
+    ABI::FloatType *some_type;
+    ABI::Integer *int_type;
+
+    if ((some_type = llvm::dyn_cast<ABI::FloatType>(ele))) {
+      size += some_type->getSize();
+    } else if ((int_type = llvm::dyn_cast<ABI::Integer>(ele))) {
+        size += int_type->getSize();
+    } else {
+      assert(0 && "don't konw how to calculate size for struct type!");
+    }
+  }
+  return size;
 }
+
+bool StructType::isFloat() const { return false; }
 
 bool StructType::classof(const Type *type) {
   return type->getKind() == Type::TypeKind::StructType;
@@ -58,6 +72,7 @@ FloatType::FloatType(uint64_t size)
 bool FloatType::isIntegerType() const { return false; }
 bool FloatType::isFloat() const { return true; }
 bool FloatType::isAggregateType() const { return false; }
+uint64_t FloatType::getSize() const { return Size; }
 
 bool FloatType::classof(const Type *type) {
   return type->getKind() == Type::TypeKind::FloatType;

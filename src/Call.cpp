@@ -112,11 +112,12 @@ void X86_64ABIInfo::Classify(Type *type, Class &Low, Class &High) {
 
   // rename to record type?
   ABI::StructType *record_type;
-  if (record_type) {
+  if ((record_type = llvm::dyn_cast<ABI::StructType>(type))) {
     // FIXME: there are cases such as 256 and 512 bit vector where this is not
     // true
     if (record_type->getSize() > 32) {
       // The entire class is on memory
+      Low = High = Memory;
       return;
     }
 
@@ -226,6 +227,6 @@ void X86_64ABIInfo::ComputeInfo(FunctionInfo &FI) {
       assert(false && "unreachable statement. Not implemented yet");
     }
 
-    assert(high == NoClass);
+    // assert(high == NoClass);
   }
 }
