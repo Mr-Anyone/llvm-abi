@@ -3,13 +3,14 @@
 
 using namespace ABI;
 
-FunctionInfo::FunctionInfo(std::vector<std::shared_ptr<Type>> args,
-                           std::shared_ptr<Type> ret, CallingConvention conv)
+FunctionInfo::FunctionInfo(std::vector<Type *> args, Type *ret,
+                           CallingConvention conv)
     : Args(), RetInfo{ret, ABIArgInfo()}, Conv(conv) {
 
   // initialize the argument
-  for (const std::shared_ptr<Type> ty : args) {
-    Args.push_back({ty, ABIArgInfo()});
+  for (Type *ty : args) {
+    FunctionArgInfo info{ty, ABIArgInfo()};
+    Args.push_back(info);
   }
 }
 
@@ -28,5 +29,3 @@ FunctionArgInfo FunctionInfo::getReturnInfo() const { return RetInfo; }
 void FunctionInfo::setABIReturnInfo(const ABIArgInfo &info) {
   RetInfo.Info = info;
 }
-
-

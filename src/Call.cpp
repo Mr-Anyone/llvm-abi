@@ -1,81 +1,168 @@
 #include "Call.h"
 #include "Function.h"
 #include "Type.h"
+#include "llvm/Support/Casting.h"
 
 #include <cassert>
 #include <memory>
 
 using namespace ABI;
 
-X86_64ABIInfo::Class
-X86_64ABIInfo::ClassifyArgumentType(std::shared_ptr<Type> type) {
+X86_64ABIInfo::Class X86_64ABIInfo::Merge(Class one, Class two) {
+  // for a 8 bytes
+  // (a) If both classes are equal, this is the resulting class.
+  // (b) If one of the classes is NO_CLASS, the resulting class is the other
+  // class.
+  // (c) If one of the classes is MEMORY, the result is the MEMORY class.
+  // (d) If one of the classes is INTEGER, the result is the INTEGER.
+  // (e) If one of the classes is X87, X87UP, COMPLEX_X87 class, MEMORY is used
+  // as class.
+  // (f) Otherwise class SSE is used.
+  if (one == two)
+    return one;
+  else if (one == NoClass || two == NoClass)
+    return NoClass;
+  else if (one == Memory || two == Memory)
+    return Memory;
+  else if (one == Integer || two == Integer)
+    return Integer;
+  else if (one == X87 || two == X87)
+    return Memory;
+  else if (one == X87Up || two == X87Up)
+    return Memory;
+  else if (one == Complex || two == Complex)
+    return Complex;
 
-  assert(type && "null type is undefined for now!");
-  if (type->isIntegerType() && !type->isAggregateType()) {
-    std::shared_ptr<::Integer> intergerType =
-        std::dynamic_pointer_cast<::Integer>(type);
+  return SSE;
+}
 
-    if (intergerType->getSize() <= 8)
-      return Integer;
-
-    // FIXME: what about types that are _BitInt(128), etc.
-    assert(false && "how to represent type that are less than 8 bytes  ");
+void X86_64ABIInfo::PostMerger(Class &Low, Class &High) {
+  //     5. Then a post merger cleanup is done:
+  // (a) If one of the classes is MEMORY, the whole argument is passed in
+  // memory.
+  // (b) If X87UP is not preceded by X87, the whole argument is passed in
+  // memory.
+  // (c) If the size of the aggregate exceeds two eightbytes and the first
+  // eight- byte isn’t SSE or any other eightbyte isn’t SSEUP, the whole
+  // argument is passed in memory.
+  // (d) If SSEUP is not preceded by SSE or SSEUP, it is converted to SSE
+  if (Low == Memory && High == Memory) {
+    Low = High = Memory;
+  } else if (High == X87Up && Low != X87) {
+    Low = High = Memory;
+  } else if (High == SSEUp && Low != SSE) {
+    High = SSEUp;
   }
+}
 
-  if (type->isAggregateType()) {
-    std::shared_ptr<::StructType> structType =
-        std::dynamic_pointer_cast<::StructType>(type);
+// What about High and Low?
+void X86_64ABIInfo::Classify(Type *type, Class &Low, Class &High) {
+  Low = NoClass;
+  High = NoClass;
 
-    // TODO: check if this is 4 strict or less strict
-    if (structType->getSize() >= 4 * 8) {
-      return Memory;
+  // Trivial cases
+
+  // page 17, Classification rule one:
+  // 1) Arguments of types (signed and unsigned) _Bool, char, short, int, long,
+  // long long, and pointers are in the INTEGER class.
+  ABI::Integer *integer_type;
+  if ((integer_type = llvm::dyn_cast<::Integer>(type))) {
+    if (integer_type->getSize() <= 8) {
+      Low = Integer;
+      return;
+    } else if (integer_type->getSize() == 16) {
+      // Arguments of type __int128 offer the same operations as INTEGERs,
+      // yet they do not fit into one general purpose register but require two
+      //    registers.For classification purpose
+      Low = Integer;
+      High = Integer;
+
+      return;
     }
   }
 
-  assert(false && "Todo: b re");
+  ABI::FloatType *float_type;
+  // basically the following type as of so far:
+  // float, double, _Decimal32, _Decimal64 and __m64 are in class SSE.
+  if ((float_type = llvm::dyn_cast<::FloatType>(type))) {
+    if (float_type->getSize() <= 8) {
+      Low = SSE;
+      return;
+    }
+  }
+
+  // Arguments of types __float128, _Decimal128 and __m128 are split
+  // into two halves. The least significant ones belong to class SSE, the most
+  // significant one to class SSEUP.
+  if (float_type) {
+    // FIXME: what about _m256?
+    assert(float_type->getSize() != 32 && "unimplemented for m256");
+
+    if (float_type->getSize() == 16) {
+      Low = SSE;
+      High = SSEUp;
+      return;
+    }
+  }
+
+  // FIXME: we seem to need to be able to parse the difference between int long
+  // double and __float128 The 64-bit mantissa of arguments of type long double
+  // belongs to class X87, the 16-bit exponent plus 6 bytes of padding belongs
+  // to class X87UP
+
+  // rename to record type?
+  ABI::StructType *record_type;
+  if (record_type) {
+    // FIXME: there are cases such as 256 and 512 bit vector where this is not
+    // true
+    if (record_type->getSize() > 32) {
+      // The entire class is on memory
+      return;
+    }
+
+    assert(record_type->getSize() > 8 && "FIXME as well");
+    // FIXME: check for alignment as well!
+
+    assert(Low == NoClass && High == NoClass);
+    int currentOffset = 0;
+    for (ABI::StructType::ElementIterator it = record_type->getStart(),
+                                          e = record_type->getEnd();
+         it != e; ++it) {
+
+      Class FieldLow, FieldHigh;
+      ABI::Integer *integer_type;
+      ABI::FloatType *float_type;
+
+      // calculate lowering type
+      if ((integer_type = llvm::dyn_cast<ABI::Integer>(*it))) {
+        assert(integer_type->getSize() <= 8);
+
+        Classify(integer_type, FieldLow, FieldHigh);
+        currentOffset += integer_type->getSize();
+      } else if ((float_type = llvm::dyn_cast<ABI::FloatType>(*it))) {
+        // something here
+        assert(float_type->getSize() <= 8);
+        Classify(float_type, FieldLow, FieldHigh);
+        currentOffset += float_type->getSize();
+      }
+
+      // lower type
+      if (currentOffset < 8) {
+        Low = Merge(Low, FieldLow);
+      } else {
+        High = Merge(High, FieldHigh);
+      }
+    }
+
+    PostMerger(Low, High);
+    return;
+  }
+
+  assert(false && "unimplemented!");
 }
 
-// Mainly taken from clang
 void X86_64ABIInfo::ComputeInfo(FunctionInfo &FI) {
   // Keep track of the number of assigned registers.
   unsigned FreeIntRegs = 6;
   unsigned FreeSSERegs = 8;
-  unsigned NeededInt = 0, NeededSSE = 0, MaxVectorWidth = 0;
-
-  // Lower Return
-  switch (ClassifyArgumentType(FI.getReturnInfo().Ty)) {
-  case Class::Integer:
-    FI.setABIReturnInfo(ABIArgInfo(Direct)); // eax register
-    break;
-  default:
-    assert(false && "Please implememnt other types");
-  }
-
-  // AMD64-ABI 3.2.3p3: Once arguments are classified, the registers
-  // get assigned (in left-to-right order) for passing as follows...
-  unsigned ArgNo = 0;
-  for (FunctionInfo::ArgIter it = FI.GetArgBegin(), ie = FI.GetArgEnd();
-       it != ie; ++it, ++ArgNo) {
-
-    Class type = ClassifyArgumentType(it->Ty);
-
-    switch (type) {
-    case ABI::X86_64ABIInfo::Class::Integer:
-      // defined by AMD64-ABI:
-      if (FreeIntRegs > 0) {
-        // Use Register
-        it->Info = ABIArgInfo(Direct);
-      } else {
-        // Pushed to the stack
-        it->Info = ABIArgInfo(Indirect);
-      }
-      --FreeIntRegs;
-      break;
-    case ABI::X86_64ABIInfo::Class::Memory:
-      it->Info = ABIArgInfo(Indirect);
-      break;
-    default:
-      assert(false && "unreachable statement. Not implemented yet");
-    }
-  }
 }

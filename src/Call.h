@@ -25,20 +25,19 @@ public:
     Integer = 0,
     SSE,
     SSEUp,
-    X87,
-    X87Up,
-    ComplexX87,
+    X87,     // FIXME: add this later
+    X87Up,   // FIXME: add this later
+    Complex, // FIXME: add this laterX87,
     NoClass,
     Memory,
-
-    Num
   };
 
   virtual void ComputeInfo(FunctionInfo &FI) override;
 
-  Class ClassifyArgumentType(std::shared_ptr<Type> type);
-
 private:
+  void Classify(Type *type, Class &Low, Class &High);
+  Class Merge(Class one, Class two);
+  void PostMerger(Class &Low, Class &High);
 };
 } // namespace ABI
 

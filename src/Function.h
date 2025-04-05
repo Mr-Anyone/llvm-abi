@@ -84,7 +84,8 @@ enum CallingConvention {
 };
 
 struct FunctionArgInfo {
-  std::shared_ptr<Type> Ty;
+  // FIXME: lifetime?
+  Type *Ty;
   ABIArgInfo Info;
 };
 
@@ -93,8 +94,8 @@ public:
   using ArgIter = std::vector<FunctionArgInfo>::iterator;
 
   // TODO: you are missing a lot of stuff, variadic, etc
-  FunctionInfo(std::vector<std::shared_ptr<Type>> args,
-               std::shared_ptr<Type> ret, CallingConvention conv);
+  // FIXME
+  FunctionInfo(std::vector<Type *> args, Type *ret, CallingConvention conv);
 
   ArgIter GetArgBegin();
   ArgIter GetArgEnd();
