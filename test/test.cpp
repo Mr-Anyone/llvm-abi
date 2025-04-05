@@ -53,7 +53,7 @@ void TestTwo() {
 
 void RunTest() {
   TestOne();
-   TestTwo();
+  TestTwo();
 }
 
 int main() { RunTest(); }

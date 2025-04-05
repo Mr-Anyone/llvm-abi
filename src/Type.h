@@ -44,7 +44,7 @@ public:
   enum FloatingType {
     Float = 0,
     Double,
-    Long_Float,
+    Long_Double,
     Float_128,
     Decimal32,
     Decimal64,

@@ -1,7 +1,5 @@
 # LLVM ABI Library Prototype  
 
-⚠ **Project Status: Incomplete** ⚠  
-
 This is a prototype LLVM ABI lowering library focused on the **System V ABI**. It provides a simple, self-contained implementation for call ABI. 
 
 ## Features  
@@ -20,13 +18,12 @@ This library is designed to assist **language frontend developers** by providing
 A frontend might generate type information like this:  
 
 ```cpp
-std::shared_ptr<ABI::Type> arg = std::make_shared<ABI::Integer>(/*size*/ 8);
-std::vector<std::shared_ptr<ABI::Type>> args{arg, arg, arg, arg, arg};
-std::shared_ptr<ABI::StructType> arg_one =
-    std::make_shared<ABI::StructType>(args);
+ABI::Integer arg(/*size*/ 8);
+std::vector<ABI::Type *> record{&arg, &arg, &arg, &arg, &arg};
+ABI::StructType arg_one(record);
 
-std::shared_ptr<ABI::Type> returnType = std::make_shared<ABI::Integer>(8);
-ABI::FunctionInfo FI(args, returnType, ABI::CallingConvention::C);
+ABI::Integer returnType = ABI::Integer(/*size*/ 8);
+ABI::FunctionInfo FI({&arg_one}, &returnType, ABI::CallingConvention::C);
 ```
 
 This represents the following C function signature:
@@ -40,16 +37,13 @@ uint64_t some_func(some_type_t type);
 ```
 By calling `ComputeInfo`, the library produces an `ABIInfo` object, which specifies how arguments should be passed (e.g., in registers or on the stack).
 
-```
-ABI::X86_64ABIInfo abiLowering;
-abiLowering.ComputeInfo(FI);
-
-// Check return type handling
+```c
 assert(FI.getReturnInfo().Info.GetKind() == ABI::Direct);
 
-// Verify struct passing strategy
+// struct larger than 4 bytes in the memory
 auto ArgIterator = FI.GetArgBegin();
-assert(ArgIterator->Info.GetKind() == ABI::Indirect); // Structs larger than 4 bytes are passed by reference
+ABI::ABIArgInfo abiInfo = ArgIterator->Info;
+assert(abiInfo.GetKind() == ABI::Indirect);
 ```
 
 See [`Test.cpp`](./test/test.cpp) for more example on how this is done.
