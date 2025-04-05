@@ -165,4 +165,67 @@ void X86_64ABIInfo::ComputeInfo(FunctionInfo &FI) {
   // Keep track of the number of assigned registers.
   unsigned FreeIntRegs = 6;
   unsigned FreeSSERegs = 8;
+
+  Class ReturnHigh, ReturnLow;
+  Classify(FI.getReturnInfo().Ty, ReturnLow, ReturnHigh);
+  switch (ReturnLow) {
+  case Memory:
+    FI.setABIReturnInfo(ABIArgInfo(Indirect));
+    break;
+  case X87:
+  case SSE:
+  case Complex:
+  case Integer:
+    FI.setABIReturnInfo(ABIArgInfo(Direct));
+    break;
+  default:
+    assert(false && "how did we get here?");
+  }
+
+  // AMD64-ABI 3.2.3p3: Once arguments are classified, the registers
+  // get assigned (in left-to-right order) for passing as follows...
+  unsigned ArgNo = 0;
+  for (FunctionInfo::ArgIter it = FI.GetArgBegin(), ie = FI.GetArgEnd();
+       it != ie; ++it, ++ArgNo) {
+
+    Class low;
+    Class high;
+    Classify(it->Ty, low, high);
+    assert(low != NoClass);
+
+    // dealing with low
+    switch (low) {
+    case ABI::X86_64ABIInfo::Class::Integer:
+      // defined by AMD64-ABI:
+      if (FreeIntRegs > 0) {
+        // Use Register
+        it->Info = ABIArgInfo(Direct);
+      } else {
+        // Pushed to the stack
+        it->Info = ABIArgInfo(Indirect);
+      }
+      --FreeIntRegs;
+    case ABI::X86_64ABIInfo::Class::SSE:
+      // defined by AMD64-ABI:
+      if (FreeSSERegs > 0) {
+        // Use Register
+        it->Info = ABIArgInfo(Direct);
+      } else {
+        // Pushed to the stack
+        it->Info = ABIArgInfo(Indirect);
+      }
+      --FreeSSERegs;
+      break;
+      // 5. If the class is X87, X87UP or COMPLEX_X87, it is passed in memory.
+    case ABI::X86_64ABIInfo::Class::Complex:
+    case ABI::X86_64ABIInfo::Class::X87:
+    case ABI::X86_64ABIInfo::Class::Memory:
+      it->Info = ABIArgInfo(Indirect);
+      break;
+    default:
+      assert(false && "unreachable statement. Not implemented yet");
+    }
+
+    assert(high == NoClass);
+  }
 }

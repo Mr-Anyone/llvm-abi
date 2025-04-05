@@ -9,14 +9,7 @@ namespace ABI {
 
 class Type {
 public:
-  enum TypeKind {
-    BuiltIn,
-    Integer, // TODO: remove me
-    StructType,
-    FloatType,
-    PointerType,
-    Size
-  };
+  enum TypeKind { BuiltIn, Integer, StructType, FloatType, PointerType, Size };
 
 private:
   const TypeKind Kind;

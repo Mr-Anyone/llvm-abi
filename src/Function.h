@@ -93,8 +93,6 @@ class FunctionInfo {
 public:
   using ArgIter = std::vector<FunctionArgInfo>::iterator;
 
-  // TODO: you are missing a lot of stuff, variadic, etc
-  // FIXME
   FunctionInfo(std::vector<Type *> args, Type *ret, CallingConvention conv);
 
   ArgIter GetArgBegin();
