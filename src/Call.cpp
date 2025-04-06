@@ -20,10 +20,10 @@ X86_64ABIInfo::Class X86_64ABIInfo::Merge(Class one, Class two) {
   // (f) Otherwise class SSE is used.
   if (one == two)
     return one;
-  else if (one == NoClass || two == NoClass)
-    return NoClass;
-  else if (one == Memory || two == Memory)
-    return Memory;
+  else if (one == NoClass)
+    return two;
+  else if (two == NoClass)
+    return one; else if (one == Memory || two == Memory) return Memory;
   else if (one == Integer || two == Integer)
     return Integer;
   else if (one == X87 || two == X87)
@@ -135,16 +135,17 @@ void X86_64ABIInfo::Classify(Type *type, Class &Low, Class &High) {
       ABI::FloatType *float_type;
 
       // calculate lowering type
+      uint64_t offset = 0;
       if ((integer_type = llvm::dyn_cast<ABI::Integer>(*it))) {
         assert(integer_type->getSize() <= 8);
 
         Classify(integer_type, FieldLow, FieldHigh);
-        currentOffset += integer_type->getSize();
+        offset += integer_type->getSize();
       } else if ((float_type = llvm::dyn_cast<ABI::FloatType>(*it))) {
         // something here
         assert(float_type->getSize() <= 8);
         Classify(float_type, FieldLow, FieldHigh);
-        currentOffset += float_type->getSize();
+        offset += float_type->getSize();
       }
 
       // lower type
@@ -153,6 +154,9 @@ void X86_64ABIInfo::Classify(Type *type, Class &Low, Class &High) {
       } else {
         High = Merge(High, FieldHigh);
       }
+
+      assert(offset > 0 && "how can this be possible?");
+      currentOffset += offset;
     }
 
     PostMerger(Low, High);

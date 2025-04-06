@@ -64,7 +64,7 @@ bool StructType::classof(const Type *type) {
   return type->getKind() == Type::TypeKind::StructType;
 }
 
-FloatType::FloatType() :  ::Type(TypeKind::FloatType),Size(4), Alignment(4)  {}
+FloatType::FloatType() : ::Type(TypeKind::FloatType), Size(4), Alignment(4) {}
 
 FloatType::FloatType(uint64_t size)
     : Size(size), Alignment(size), ::Type(TypeKind::FloatType) {}
