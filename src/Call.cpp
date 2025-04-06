@@ -125,7 +125,7 @@ void X86_64ABIInfo::Classify(Type *type, Class &Low, Class &High) {
       return;
     }
 
-    assert(record_type->getSize() > 8 && "FIXME as well");
+    // assert(record_type->getSize() > 8 && "FIXME as well");
     // FIXME: check for alignment as well!
 
     assert(Low == NoClass && High == NoClass);
@@ -137,9 +137,12 @@ void X86_64ABIInfo::Classify(Type *type, Class &Low, Class &High) {
       Class FieldLow, FieldHigh;
       ABI::Integer *integer_type;
       ABI::FloatType *float_type;
+      ABI::StructType *struct_type;
 
       // calculate lowering type
       uint64_t offset = 0;
+
+      // FIXME: use switch statement instead
       if ((integer_type = llvm::dyn_cast<ABI::Integer>(*it))) {
         assert(integer_type->getSize() <= 8);
 
@@ -150,14 +153,15 @@ void X86_64ABIInfo::Classify(Type *type, Class &Low, Class &High) {
         assert(float_type->getSize() <= 8);
         Classify(float_type, FieldLow, FieldHigh);
         offset += float_type->getSize();
+      } else if ((struct_type = llvm::dyn_cast<ABI::StructType>(*it))) {
+        Classify(struct_type, FieldLow, FieldHigh);
+        offset += struct_type->getSize();
+      } else {
+        assert(false && "don't know how this happened!");
       }
 
-      // lower type
-      if (currentOffset < 8) {
-        Low = Merge(Low, FieldLow);
-      } else {
-        High = Merge(High, FieldHigh);
-      }
+      Low = Merge(Low, FieldLow);
+      High = Merge(High, FieldHigh);
 
       assert(offset > 0 && "how can this be possible?");
       currentOffset += offset;

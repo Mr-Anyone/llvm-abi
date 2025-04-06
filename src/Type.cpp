@@ -46,11 +46,14 @@ uint64_t StructType::getSize() const {
   for (Type *ele : elements) {
     ABI::FloatType *some_type;
     ABI::Integer *int_type;
+    ABI::StructType *struct_type;
 
     if ((some_type = llvm::dyn_cast<ABI::FloatType>(ele))) {
       size += some_type->getSize();
     } else if ((int_type = llvm::dyn_cast<ABI::Integer>(ele))) {
       size += int_type->getSize();
+    } else if ((struct_type = llvm::dyn_cast<ABI::StructType>(ele))) {
+        size += struct_type->getSize();
     } else {
       assert(0 && "don't konw how to calculate size for struct type!");
     }
