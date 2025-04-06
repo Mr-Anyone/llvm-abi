@@ -8,8 +8,8 @@ using namespace ABI;
 Type::Type(TypeKind kind) : Kind(kind) {}
 Type::TypeKind Type::getKind() const { return Kind; }
 
-Integer::Integer(uint64_t size) : Size(size), ::Type(TypeKind::Integer) {}
-Integer::Integer() : Size(4), ::Type(TypeKind::Integer) {}
+Integer::Integer(uint64_t size) : ::Type(TypeKind::Integer), Size(size) {}
+Integer::Integer() : ::Type(TypeKind::Integer), Size(4) {}
 
 bool Integer::isFloat() const { return false; }
 
@@ -23,7 +23,7 @@ bool Integer::classof(const Type *type) {
 uint64_t Integer::getSize() const { return Size; }
 
 StructType::StructType(std::vector<Type *> elements)
-    : elements(elements), ::Type(TypeKind::StructType) {}
+    : ::Type(TypeKind::StructType), elements(elements) {}
 
 bool StructType::isAggregateType() const {
   // FIXME: as of current we can only represent interger
@@ -50,7 +50,7 @@ uint64_t StructType::getSize() const {
     if ((some_type = llvm::dyn_cast<ABI::FloatType>(ele))) {
       size += some_type->getSize();
     } else if ((int_type = llvm::dyn_cast<ABI::Integer>(ele))) {
-        size += int_type->getSize();
+      size += int_type->getSize();
     } else {
       assert(0 && "don't konw how to calculate size for struct type!");
     }
@@ -64,7 +64,7 @@ bool StructType::classof(const Type *type) {
   return type->getKind() == Type::TypeKind::StructType;
 }
 
-FloatType::FloatType() : Size(4), Alignment(4), ::Type(TypeKind::FloatType) {}
+FloatType::FloatType() :  ::Type(TypeKind::FloatType),Size(4), Alignment(4)  {}
 
 FloatType::FloatType(uint64_t size)
     : Size(size), Alignment(size), ::Type(TypeKind::FloatType) {}

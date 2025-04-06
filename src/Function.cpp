@@ -5,7 +5,7 @@ using namespace ABI;
 
 FunctionInfo::FunctionInfo(std::vector<Type *> args, Type *ret,
                            CallingConvention conv)
-    : Args(), RetInfo{ret, ABIArgInfo()}, Conv(conv) {
+    : Conv(conv), Args(), RetInfo{ret, ABIArgInfo()} {
 
   // initialize the argument
   for (Type *ty : args) {
