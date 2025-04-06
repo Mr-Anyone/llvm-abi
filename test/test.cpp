@@ -7,11 +7,10 @@
 
 using namespace ABI;
 void TestOne() {
-  // Create a function with 7 uint32_t
+  // int func1(int, int);
   Integer arg(4);
   Integer arg_two(4);
   std::vector<Type *> args{&arg, &arg_two};
-
   Integer returnType(8);
   FunctionInfo FI(args, &returnType, ABI::CallingConvention::C);
 
@@ -21,12 +20,10 @@ void TestOne() {
   assert(FI.getReturnInfo().Info.GetKind() == Direct);
 
   auto ArgIterator = FI.GetArgBegin();
-  // rdi, rsi, rdx, rcx, r8, r9
-  // the first 6 argument are passed on the register
-  assert(ArgIterator->Info.GetKind() == Direct);
-  ++ArgIterator;
   assert(ArgIterator->Info.GetKind() == Direct);
 
+  ++ArgIterator;
+  assert(ArgIterator->Info.GetKind() == Direct);
   std::cout << "Passed test one" << std::endl;
 }
 
