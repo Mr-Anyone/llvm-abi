@@ -25,9 +25,9 @@ public:
     Integer = 0,
     SSE,
     SSEUp,
-    X87,     // FIXME: add this later
-    X87Up,   // FIXME: add this later
-    Complex, // FIXME: add this laterX87,
+    X87,     
+    X87Up,   
+    Complex, 
     NoClass,
     Memory,
   };
@@ -37,7 +37,7 @@ public:
 private:
   void Classify(Type *type, Class &Low, Class &High);
   Class Merge(Class one, Class two);
-void PostMerger(Class &Low, Class &High, uint64_t size);
+  void PostMerger(Class &Low, Class &High, uint64_t size);
 };
 } // namespace ABI
 
