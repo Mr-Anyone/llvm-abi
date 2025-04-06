@@ -26,7 +26,7 @@ void TestOne() {
   ++ArgIterator;
   assert(ArgIterator->Info.GetKind() == ABI::Direct);
 
-  std::cout << "Passed test one!" << std::endl;
+  std::cout << "Passed test one" << std::endl;
 }
 
 void TestTwo() {
@@ -50,20 +50,20 @@ void TestTwo() {
   std::cout << "Passed test two" << std::endl;
 }
 
-void TestThree(){
-  //typedef struct {
-  //     int a, b;
-  //     float c, d;
-  // } some_type_t;
+void TestThree() {
+  // typedef struct {
+  //      int a, b;
+  //      float c, d;
+  //  } some_type_t;
 
   // int some_func(some_type_t a);
-  ABI::Integer a (4);
-  ABI::Integer b (4);
-  ABI::FloatType  c (4);
-  ABI::FloatType  d (4);
-  std::vector<ABI::Type*> record {&a, &b, &c, &d};
-  ABI::StructType arg (record);
-  ABI::Integer  return_type(4);
+  ABI::Integer a(4);
+  ABI::Integer b(4);
+  ABI::FloatType c(4);
+  ABI::FloatType d(4);
+  std::vector<ABI::Type *> record{&a, &b, &c, &d};
+  ABI::StructType arg(record);
+  ABI::Integer return_type(4);
 
   ABI::FunctionInfo FI({&arg}, &return_type, ABI::CallingConvention::C);
   ABI::X86_64ABIInfo abiLowering;
@@ -75,13 +75,77 @@ void TestThree(){
   ABI::ABIArgInfo abiInfo = ArgIterator->Info;
   assert(abiInfo.GetKind() == ABI::Direct);
 
-  std::cout << "I have passed test three" << std::endl;
+  std::cout << "Passed Test Three" << std::endl;
+}
+
+void TestFour() {
+  // typedef struct {
+  //      int a;
+  //      float b;
+  //    int c,
+  //    float dd;
+  //  } some_type_t;
+
+  // int some_func(some_type_t a);
+  ABI::Integer a(4);
+  ABI::FloatType b(4);
+  ABI::Integer c(4);
+  ABI::FloatType d(4);
+  std::vector<ABI::Type *> record{&a, &b, &c, &d};
+  ABI::StructType arg(record);
+  ABI::Integer return_type(4);
+
+  ABI::FunctionInfo FI({&arg}, &return_type, ABI::CallingConvention::C);
+  ABI::X86_64ABIInfo abiLowering;
+  abiLowering.ComputeInfo(FI);
+
+  assert(FI.getReturnInfo().Info.GetKind() == ABI::Direct);
+
+  auto ArgIterator = FI.GetArgBegin();
+  ABI::ABIArgInfo abiInfo = ArgIterator->Info;
+  assert(abiInfo.GetKind() == ABI::Direct);
+
+  std::cout << "Passed test four" << std::endl;
+}
+
+void TestFive() {
+  // typedef struct {
+  //      int a;
+  //      float b;
+  //    int c,
+  //    float d;
+  //  int e
+  //  } some_type_t;
+
+  // int some_func(some_type_t a);
+  ABI::Integer a(4);
+  ABI::FloatType b(4);
+  ABI::Integer c(4);
+  ABI::FloatType d(4);
+  ABI::Integer e(4);
+  std::vector<ABI::Type *> record{&a, &b, &c, &d, &e};
+  ABI::StructType arg(record);
+  ABI::Integer return_type(4);
+
+  ABI::FunctionInfo FI({&arg}, &return_type, ABI::CallingConvention::C);
+  ABI::X86_64ABIInfo abiLowering;
+  abiLowering.ComputeInfo(FI);
+
+  assert(FI.getReturnInfo().Info.GetKind() == ABI::Direct);
+
+  auto ArgIterator = FI.GetArgBegin();
+  ABI::ABIArgInfo abiInfo = ArgIterator->Info;
+  assert(abiInfo.GetKind() == ABI::Indirect);
+
+  std::cout << "Passed test five" << std::endl;
 }
 
 void RunTest() {
   TestOne();
   TestTwo();
   TestThree();
+  TestFour();
+  TestFive();
 }
 
 int main() { RunTest(); }

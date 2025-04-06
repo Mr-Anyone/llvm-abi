@@ -37,7 +37,7 @@ public:
 private:
   void Classify(Type *type, Class &Low, Class &High);
   Class Merge(Class one, Class two);
-  void PostMerger(Class &Low, Class &High);
+void PostMerger(Class &Low, Class &High, uint64_t size);
 };
 } // namespace ABI
 

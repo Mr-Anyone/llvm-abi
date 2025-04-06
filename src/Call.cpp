@@ -23,7 +23,9 @@ X86_64ABIInfo::Class X86_64ABIInfo::Merge(Class one, Class two) {
   else if (one == NoClass)
     return two;
   else if (two == NoClass)
-    return one; else if (one == Memory || two == Memory) return Memory;
+    return one;
+  else if (one == Memory || two == Memory)
+    return Memory;
   else if (one == Integer || two == Integer)
     return Integer;
   else if (one == X87 || two == X87)
@@ -36,7 +38,7 @@ X86_64ABIInfo::Class X86_64ABIInfo::Merge(Class one, Class two) {
   return SSE;
 }
 
-void X86_64ABIInfo::PostMerger(Class &Low, Class &High) {
+void X86_64ABIInfo::PostMerger(Class &Low, Class &High, uint64_t size) {
   //     5. Then a post merger cleanup is done:
   // (a) If one of the classes is MEMORY, the whole argument is passed in
   // memory.
@@ -45,13 +47,15 @@ void X86_64ABIInfo::PostMerger(Class &Low, Class &High) {
   // (c) If the size of the aggregate exceeds two eightbytes and the first
   // eight- byte isn’t SSE or any other eightbyte isn’t SSEUP, the whole
   // argument is passed in memory.
-  // (d) If SSEUP is not preceded by SSE or SSEUP, it is converted to SSE
+
   if (Low == Memory && High == Memory) {
     Low = High = Memory;
   } else if (High == X87Up && Low != X87) {
     Low = High = Memory;
   } else if (High == SSEUp && Low != SSE) {
     High = SSEUp;
+  } else if (Low != SSE && High != SSEUp && size > 16) {
+    High = Low = Memory;
   }
 }
 
@@ -125,7 +129,7 @@ void X86_64ABIInfo::Classify(Type *type, Class &Low, Class &High) {
     // FIXME: check for alignment as well!
 
     assert(Low == NoClass && High == NoClass);
-    int currentOffset = 0;
+    uint64_t currentOffset = 0;
     for (ABI::StructType::ElementIterator it = record_type->getStart(),
                                           e = record_type->getEnd();
          it != e; ++it) {
@@ -159,7 +163,7 @@ void X86_64ABIInfo::Classify(Type *type, Class &Low, Class &High) {
       currentOffset += offset;
     }
 
-    PostMerger(Low, High);
+    PostMerger(Low, High, currentOffset);
     return;
   }
 
