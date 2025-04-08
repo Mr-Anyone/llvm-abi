@@ -7,7 +7,6 @@ This is a prototype LLVM ABI lowering library focused on the **System V ABI**. I
 - A **basic type system** designed specifically for ABI lowering (see [`Type.cpp`](./src/Type.h))  
 - Can be extended to different calling conventions and targets.
 - **System V ABI lowering implementation** following AMD-SystemV conventions  (see [`Call.cpp`](./src/Call.h))  
-- **No external dependencies** – the library is fully self-contained  
 
 ## Overview  
 
@@ -49,8 +48,15 @@ assert(abiInfo.GetKind() == Indirect);
 See [`Test.cpp`](./test/test.cpp) for more example on how this is done.
 ## Building  
 
-To build the project, run:  
+Note: **llvm must be installed on your computer**. If you are running ubuntu, you probably have to do 
+something like the following: 
 
+```
+sudo apt install llvm-14
+```
+
+
+To build the project, run:  
 
 ```sh
 mkdir build
