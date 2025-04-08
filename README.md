@@ -18,12 +18,12 @@ This library is designed to assist **language frontend developers** by providing
 A frontend might generate type information like this:  
 
 ```cpp
-ABI::Integer arg(/*size*/ 8);
-std::vector<ABI::Type *> record{&arg, &arg, &arg, &arg, &arg};
-ABI::StructType arg_one(record);
+Integer arg(/*size*/ 8);
+std::vector<Type *> record{&arg, &arg, &arg, &arg, &arg};
+StructType arg_one(record);
 
-ABI::Integer returnType = ABI::Integer(/*size*/ 8);
-ABI::FunctionInfo FI({&arg_one}, &returnType, ABI::CallingConvention::C);
+Integer returnType (/*size*/ 8);
+FunctionInfo FI({&arg_one}, &returnType, CallingConvention::C);
 ```
 
 This represents the following C function signature:
@@ -38,12 +38,12 @@ uint64_t some_func(some_type_t type);
 By calling `ComputeInfo`, the library produces an `ABIInfo` object, which specifies how arguments should be passed (e.g., in registers or on the stack).
 
 ```c
-assert(FI.getReturnInfo().Info.GetKind() == ABI::Direct);
+assert(FI.getReturnInfo().Info.GetKind() == Direct);
 
 // struct larger than 4 bytes in the memory
 auto ArgIterator = FI.GetArgBegin();
-ABI::ABIArgInfo abiInfo = ArgIterator->Info;
-assert(abiInfo.GetKind() == ABI::Indirect);
+ABIArgInfo abiInfo = ArgIterator->Info;
+assert(abiInfo.GetKind() == Indirect);
 ```
 
 See [`Test.cpp`](./test/test.cpp) for more example on how this is done.
