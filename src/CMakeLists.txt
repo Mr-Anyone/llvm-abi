@@ -13,7 +13,7 @@ add_library(
 )
 
 if(MSVC)
-  target_compile_options(LLVMAbi PRIVATE /W4 /WX)
+  target_compile_options(LLVMAbi PRIVATE /W4)
 else()
     target_compile_options(LLVMAbi PRIVATE -Wall -Wextra -Wpedantic)
 endif()

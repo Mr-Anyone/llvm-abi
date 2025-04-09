@@ -6,7 +6,7 @@ This is a prototype LLVM ABI lowering library focused on the **System V ABI**. I
 
 - A **basic type system** designed specifically for ABI lowering (see [`Type.cpp`](./src/Type.h))  
 - Can be extended to different calling conventions and targets.
-- **System V ABI lowering implementation** following AMD-SystemV conventions  (see [`Call.cpp`](./src/Call.h))  
+- **System V ABI lowering implementation** following AMD-SystemV conventions  (see [`Call.cpp`](./src/Call.cpp))  
 
 ## Overview  
 
@@ -70,4 +70,3 @@ make -j
 ```
 ./test/test 
 ``` 
-
