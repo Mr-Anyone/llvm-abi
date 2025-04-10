@@ -17,20 +17,15 @@ private:
 public:
   Type(TypeKind kind);
   TypeKind getKind() const;
-
-  // TODO: handle this better later on
-  virtual bool isIntegerType() const = 0;
-  virtual bool isFloat() const = 0;
-  virtual bool isAggregateType() const = 0;
 };
 
 // TODO: what is the point of this class for now?
 class PointerType : public Type {
 public:
   PointerType();
-  bool isIntegerType() const override;
-  bool isFloat() const override;
-  bool isAggregateType() const override;
+  bool isIntegerType() const;
+  bool isFloat() const;
+  bool isAggregateType() const;
 
 private:
   uint64_t size;
@@ -67,9 +62,9 @@ public:
   uint64_t getSize() const;
   uint64_t getAlignment() const;
 
-  bool isIntegerType() const override;
-  bool isFloat() const override;
-  bool isAggregateType() const override;
+  bool isIntegerType() const;
+  bool isFloat() const;
+  bool isAggregateType() const;
 
   static bool classof(const Type *type);
 };
@@ -92,9 +87,9 @@ public:
   // default size of 4 bytes
   Integer();
 
-  bool isIntegerType() const override;
-  bool isFloat() const override;
-  bool isAggregateType() const override;
+  bool isIntegerType() const;
+  bool isFloat() const;
+  bool isAggregateType() const;
 
   uint64_t getSize() const;
   uint64_t getAlignment() const;
@@ -118,9 +113,9 @@ public:
   ElementIterator getStart();
   ElementIterator getEnd();
 
-  bool isIntegerType() const override;
-  bool isAggregateType() const override;
-  bool isFloat() const override;
+  bool isIntegerType() const;
+  bool isAggregateType() const;
+  bool isFloat() const;
 
   static bool classof(const Type *type);
 
