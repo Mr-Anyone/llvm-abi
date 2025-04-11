@@ -19,8 +19,17 @@ void test_two() {
   FloatType *test_cast = llvm::dyn_cast<FloatType>(sometype);
 }
 
+void test_three() {
+  FloatType original_type(4);
+  Type *copy_type = &original_type;
+  FloatType *some_type = llvm::dyn_cast<FloatType>(copy_type);
+
+  assert(some_type->getSize() == 4);
+}
+
 int main() {
   test_one();
   test_two();
+  test_three();
   std::cout << "You have passed all test!" << std::endl;
 }

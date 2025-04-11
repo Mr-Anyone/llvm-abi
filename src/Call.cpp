@@ -1,6 +1,8 @@
 #include "Call.h"
 #include "Function.h"
 #include "Type.h"
+#include "llvm/IR/DerivedTypes.h"
+#include "llvm/IR/Type.h"
 #include "llvm/Support/Casting.h"
 
 #include <cassert>
@@ -174,6 +176,35 @@ void X86_64ABIInfo::Classify(Type *type, Class &Low, Class &High) {
   assert(false && "unimplemented!");
 }
 
+llvm::Type *X86_64ABIInfo::getSSEType(Type *type) {
+  FloatType *float_type;
+  if ((float_type = llvm::dyn_cast<FloatType>(type))) {
+    if (float_type->getSize() == 4)
+      return llvm::Type::getFloatTy(Context);
+    else
+      assert("how did we get here?" && false);
+  }
+
+  StructType *struct_type;
+  if ((struct_type = llvm::dyn_cast<StructType>(type))) {
+    // fixme:
+    // this is a false assumption: consider {int, int float, float}
+    // the first two may not always be float
+    auto elements = struct_type->getStart();
+    assert(llvm::isa<FloatType>(*elements));
+    FloatType *first = llvm::dyn_cast<FloatType>(*elements);
+    ++elements;
+    assert(llvm::isa<FloatType>(*elements));
+    FloatType *second = llvm::dyn_cast<FloatType>(*elements);
+    ++elements;
+    assert(first->getSize() == 4 && second->getSize() == 4);
+
+    return llvm::FixedVectorType::get(llvm::Type::getFloatTy(Context), 2);
+  }
+  assert(false && "what did you input?");
+  return nullptr;
+}
+
 void X86_64ABIInfo::ComputeInfo(FunctionInfo &FI) {
   // Keep track of the number of assigned registers.
   unsigned FreeIntRegs = 6;
@@ -183,13 +214,15 @@ void X86_64ABIInfo::ComputeInfo(FunctionInfo &FI) {
   Classify(FI.getReturnInfo().Ty, ReturnLow, ReturnHigh);
   switch (ReturnLow) {
   case Memory:
-    FI.setABIReturnInfo(ABIArgInfo(Indirect));
+    // fixme: this is not correct
+    FI.setABIReturnInfo(ABIArgInfo(Indirect, nullptr));
     break;
   case X87:
   case SSE:
   case Complex:
   case Integer:
-    FI.setABIReturnInfo(ABIArgInfo(Direct));
+    // fixme: this is not correct
+    FI.setABIReturnInfo(ABIArgInfo(Direct, nullptr));
     break;
   default:
     assert(false && "how did we get here?");
@@ -212,20 +245,24 @@ void X86_64ABIInfo::ComputeInfo(FunctionInfo &FI) {
       // defined by AMD64-ABI:
       if (FreeIntRegs > 0) {
         // Use Register
-        it->Info = ABIArgInfo(Direct);
+        // TODO: fixme, nullptr is definitely not correct
+        it->Info = ABIArgInfo(Direct, nullptr);
       } else {
         // Pushed to the stack
-        it->Info = ABIArgInfo(Indirect);
+        // TODO: fixme, nullptr is definitely not correct
+        it->Info = ABIArgInfo(Indirect, nullptr);
       }
       --FreeIntRegs;
+      break;
     case ABI::X86_64ABIInfo::Class::SSE:
       // defined by AMD64-ABI:
       if (FreeSSERegs > 0) {
         // Use Register
-        it->Info = ABIArgInfo(Direct);
+        it->Info = ABIArgInfo(Direct, getSSEType(it->Ty));
       } else {
         // Pushed to the stack
-        it->Info = ABIArgInfo(Indirect);
+        // TODO: fixme, nullptr is definitely not correct
+        it->Info = ABIArgInfo(Indirect, nullptr);
       }
       --FreeSSERegs;
       break;
@@ -233,7 +270,8 @@ void X86_64ABIInfo::ComputeInfo(FunctionInfo &FI) {
     case ABI::X86_64ABIInfo::Class::Complex:
     case ABI::X86_64ABIInfo::Class::X87:
     case ABI::X86_64ABIInfo::Class::Memory:
-      it->Info = ABIArgInfo(Indirect);
+      // TODO: fixme, nullptr is definitely not correct
+      it->Info = ABIArgInfo(Indirect, nullptr);
       break;
     default:
       assert(false && "unreachable statement. Not implemented yet");

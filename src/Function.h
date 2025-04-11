@@ -2,7 +2,7 @@
 #define FUNCTION_H
 
 #include "Type.h"
-#include <memory>
+#include "llvm/IR/Type.h"
 #include <vector>
 
 namespace ABI {
@@ -67,13 +67,15 @@ class ABIArgInfo {
 public:
 private:
   ABIArgKind Kind;
+  llvm::Type *type;
 
 public:
   // set Kind to Direct for Register
   ABIArgInfo();
-  ABIArgInfo(ABIArgKind kind);
+  ABIArgInfo(ABIArgKind kind, llvm::Type *type);
 
   ABIArgKind GetKind() const;
+  llvm::Type *getType() const;
 };
 
 enum CallingConvention {

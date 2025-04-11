@@ -1,11 +1,14 @@
 #include "Call.h"
 #include "Function.h"
 #include "Type.h"
+#include "llvm/IR/DerivedTypes.h"
+#include "llvm/IR/LLVMContext.h"
 #include <assert.h>
 #include <iostream>
 #include <memory>
 
 using namespace ABI;
+
 void TestOne() {
   // int func1(int, int);
   Integer arg(4);
@@ -14,7 +17,8 @@ void TestOne() {
   Integer returnType(8);
   FunctionInfo FI(args, &returnType, ABI::CallingConvention::C);
 
-  X86_64ABIInfo abiLowering;
+  llvm::LLVMContext context_g;
+  X86_64ABIInfo abiLowering(context_g);
   abiLowering.ComputeInfo(FI);
 
   assert(FI.getReturnInfo().Info.GetKind() == Direct);
@@ -35,7 +39,8 @@ void TestTwo() {
 
   Integer returnType = ABI::Integer(/*size*/ 8);
   FunctionInfo FI({&arg_one}, &returnType, ABI::CallingConvention::C);
-  X86_64ABIInfo abiLowering;
+  llvm::LLVMContext context_g;
+  X86_64ABIInfo abiLowering(context_g);
   abiLowering.ComputeInfo(FI);
 
   assert(FI.getReturnInfo().Info.GetKind() == Direct);
@@ -64,7 +69,8 @@ void TestThree() {
   Integer return_type(4);
 
   FunctionInfo FI({&arg}, &return_type, ABI::CallingConvention::C);
-  X86_64ABIInfo abiLowering;
+  llvm::LLVMContext context;
+  X86_64ABIInfo abiLowering(context);
   abiLowering.ComputeInfo(FI);
 
   assert(FI.getReturnInfo().Info.GetKind() == Direct);
@@ -94,7 +100,8 @@ void TestFour() {
   Integer return_type(4);
 
   FunctionInfo FI({&arg}, &return_type, ABI::CallingConvention::C);
-  X86_64ABIInfo abiLowering;
+  llvm::LLVMContext context;
+  X86_64ABIInfo abiLowering(context);
   abiLowering.ComputeInfo(FI);
 
   assert(FI.getReturnInfo().Info.GetKind() == Direct);
@@ -126,7 +133,8 @@ void TestFive() {
   Integer return_type(4);
 
   FunctionInfo FI({&arg}, &return_type, ABI::CallingConvention::C);
-  X86_64ABIInfo abiLowering;
+  llvm::LLVMContext context;
+  X86_64ABIInfo abiLowering(context);
   abiLowering.ComputeInfo(FI);
 
   assert(FI.getReturnInfo().Info.GetKind() == Direct);
@@ -157,11 +165,42 @@ void TestSix() {
   StructType outer({&inner, &c});
 
   FunctionInfo FI({&outer}, &a, ABI::CallingConvention::C);
-  X86_64ABIInfo abiLowering;
+  llvm::LLVMContext context;
+  X86_64ABIInfo abiLowering(context);
   abiLowering.ComputeInfo(FI);
 
   assert(FI.getReturnInfo().Info.GetKind() == Direct);
   std::cout << "Passed test six" << std::endl;
+}
+
+void TestSeven() {
+  // typedef struct {
+  //      float a;
+  //      float b;
+  //  } some_type_t;
+
+  // int some_func(some_type_t a);
+  FloatType a(4);
+  FloatType b(4);
+  std::vector<Type *> record{&a, &b}; // layout
+  StructType arg(record);
+  Integer return_type(4);
+
+  FunctionInfo FI({&arg}, &return_type, ABI::CallingConvention::C);
+  llvm::LLVMContext context;
+  X86_64ABIInfo abiLowering(context);
+  abiLowering.ComputeInfo(FI);
+
+  assert(FI.getReturnInfo().Info.GetKind() == Direct);
+
+  auto ArgIterator = FI.GetArgBegin();
+  ABIArgInfo abiInfo = ArgIterator->Info;
+  assert(abiInfo.GetKind() == Direct);
+  // <2 x float>
+  assert(abiInfo.getType() ==
+         llvm::FixedVectorType::get(llvm::Type::getFloatTy(context), 2));
+
+  std::cout << "Passed test seven" << std::endl;
 }
 
 void RunTest() {
@@ -171,6 +210,7 @@ void RunTest() {
   TestFour();
   TestFive();
   TestSix();
+  TestSeven();
 }
 
 int main() { RunTest(); }

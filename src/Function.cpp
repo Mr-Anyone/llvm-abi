@@ -22,10 +22,15 @@ ABIArgInfo::ABIArgInfo() {}
 
 ABIArgKind ABIArgInfo::GetKind() const { return Kind; }
 
-ABIArgInfo::ABIArgInfo(ABIArgKind kind) : Kind(kind) {}
+ABIArgInfo::ABIArgInfo(ABIArgKind kind, llvm::Type *type)
+    : Kind(kind), type(type) {}
 
 FunctionArgInfo FunctionInfo::getReturnInfo() const { return RetInfo; }
 
 void FunctionInfo::setABIReturnInfo(const ABIArgInfo &info) {
   RetInfo.Info = info;
 }
+  llvm::Type *ABIArgInfo::getType() const{
+      return type;
+
+  }

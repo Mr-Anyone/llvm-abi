@@ -1,4 +1,4 @@
-llvm_map_components_to_libnames(llvm_libs support)
+llvm_map_components_to_libnames(llvm_libs support core)
 
 set(
     LIB_SOURCE_FILES

@@ -3,6 +3,7 @@
 
 #include "Function.h"
 #include "Type.h"
+#include "llvm/IR/LLVMContext.h"
 #include <memory>
 #include <stdint.h>
 
@@ -25,16 +26,22 @@ public:
     Integer = 0,
     SSE,
     SSEUp,
-    X87,     
-    X87Up,   
-    Complex, 
+    X87,
+    X87Up,
+    Complex,
     NoClass,
     Memory,
   };
 
+  X86_64ABIInfo(llvm::LLVMContext &context) : Context(context) {}
+
   virtual void ComputeInfo(FunctionInfo &FI) override;
 
 private:
+  llvm::LLVMContext &Context;
+
+  llvm::Type *getSSEType(Type *type);
+
   void Classify(Type *type, Class &Low, Class &High);
   Class Merge(Class one, Class two);
   void PostMerger(Class &Low, Class &High, uint64_t size);
