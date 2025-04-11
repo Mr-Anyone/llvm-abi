@@ -37,7 +37,7 @@ void FunctionInfo::dump() const {
 
   std::cout << "\n";
   RetInfo.Ty->dump();
-  std::cout << " someFunc(";
+  std::cout << " unknown_func(";
 
   for (std::size_t i = 0; i < Args.size(); ++i) {
     Args[i].Ty->dump();
@@ -60,7 +60,7 @@ void FunctionInfo::dump() const {
   if (RetInfo.Ty)
     RetInfo.Ty->dump();
   else
-    std::cout << "null(unimplemented)"<<std::endl;
+    std::cout << "null(unimplemented)" << std::endl;
 
   std::cout << "\n" << std::endl;
 }

@@ -56,7 +56,7 @@ bool Integer::classof(const Type *type) {
 
 uint64_t Integer::getSize() const { return Size; }
 
-void Integer::dump() const { std::cout << "Integer" << Size; }
+void Integer::dump() const { std::cout << "Integer" << Size * 8; }
 
 // FIXME: clean this up?
 static void pushElements(llvm::SmallVector<Type *> &records,
@@ -122,9 +122,10 @@ bool StructType::classof(const Type *type) {
 void StructType::dump() const {
   // ece
   std::cout << "{ ";
-  for (const Type *type : elements) {
-    type->dump();
-    std::cout << ",";
+  for (std::size_t i = 0; i < elements.size(); ++i) {
+    elements[i]->dump();
+    if (i != elements.size() - 1)
+      std::cout << ",";
   }
   std::cout << " }";
 }
@@ -143,7 +144,7 @@ bool FloatType::classof(const Type *type) {
   return type->getKind() == Type::TypeKind::FloatType;
 }
 
-void FloatType::dump() const { std::cout << "Float" << Size; }
+void FloatType::dump() const { std::cout << "Float" << Size * 8; }
 
 PointerType::PointerType() : ::Type(TypeKind::PointerType) {}
 
@@ -154,4 +155,4 @@ bool PointerType::isIntegerType() const {
 
 bool PointerType::isFloat() const { return false; }
 bool PointerType::isAggregateType() const { return false; }
-void PointerType::dump() const { std::cout << "PTR" << Size; }
+void PointerType::dump() const { std::cout << "PTR" << Size * 8; }
