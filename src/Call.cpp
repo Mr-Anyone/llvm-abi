@@ -229,12 +229,15 @@ llvm::Type *X86_64ABIInfo::getIntegerType(Type *type, uint64_t offset) {
     // trivial case: there is only one float
     assert(llvm::isa<ABI::Integer>(first));
     // FIXME: what about uint64_t?
-    if (second && !llvm::isa<ABI::Integer>(second))
+    if (first && second)
+      return llvm::Type::getInt64Ty(Context);
+
+    if(first && !second)
       return llvm::Type::getInt32Ty(Context);
 
-    if (llvm::isa<ABI::Integer>(first) && llvm::isa<ABI::Integer>(second))
-      if ((first->getSize() + second->getSize()) == 8)
-        return llvm::Type::getInt64Ty(Context);
+    // if (llvm::isa<ABI::Integer>(first) && llvm::isa<ABI::Integer>(second))
+    //   if ((first->getSize() + second->getSize()) == 8)
+    //     return llvm::Type::getInt64Ty(Context);
   }
 
   assert(false && "not yet implemented");
