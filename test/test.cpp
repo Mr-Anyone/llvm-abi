@@ -203,6 +203,35 @@ void TestSeven() {
   std::cout << "Passed test seven" << std::endl;
 }
 
+void TestEight() {
+  // typedef struct {
+  //   int a, b;
+  //   float c, d;
+  // } some_type_t;
+
+  // int some_func(some_type_t a);
+  Integer a(4);
+  Integer b(4);
+  FloatType c(4);
+  FloatType d(4);
+  std::vector<Type *> record{&a, &b, &c, &d}; // layout
+  StructType arg(record);
+  Integer return_type(4);
+
+  FunctionInfo FI({&arg}, &return_type, ABI::CallingConvention::C);
+  llvm::LLVMContext context;
+  X86_64ABIInfo abiLowering(context);
+  abiLowering.ComputeInfo(FI);
+
+  assert(FI.getReturnInfo().Info.GetKind() == Direct);
+
+  auto ArgIterator = FI.GetArgBegin();
+  ABIArgInfo abiInfo = ArgIterator->Info;
+  assert(abiInfo.GetKind() == Direct);
+
+  std::cout << "Passed test eight" << std::endl;
+}
+
 void RunTest() {
   TestOne();
   TestTwo();
@@ -211,6 +240,7 @@ void RunTest() {
   TestFive();
   TestSix();
   TestSeven();
+  TestEight();
 }
 
 int main() { RunTest(); }

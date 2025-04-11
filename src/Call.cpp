@@ -121,7 +121,7 @@ void X86_64ABIInfo::Classify(Type *type, Class &Low, Class &High) {
   if ((record_type = llvm::dyn_cast<ABI::StructType>(type))) {
     // FIXME: there are cases such as 256 and 512 bit vector where this is not
     // true
-    if (record_type->getSize() > 32) {
+    if (record_type->getSize() > 16) {
       // The entire class is on memory
       Low = High = Memory;
       return;
@@ -131,7 +131,7 @@ void X86_64ABIInfo::Classify(Type *type, Class &Low, Class &High) {
     // FIXME: check for alignment as well!
 
     assert(Low == NoClass && High == NoClass);
-    uint64_t currentOffset = 0;
+    uint64_t current_offset = 0;
     for (ABI::StructType::ElementIterator it = record_type->getStart(),
                                           e = record_type->getEnd();
          it != e; ++it) {
@@ -142,34 +142,50 @@ void X86_64ABIInfo::Classify(Type *type, Class &Low, Class &High) {
       ABI::StructType *struct_type;
 
       // calculate lowering type
-      uint64_t offset = 0;
 
       // FIXME: use switch statement instead
       if ((integer_type = llvm::dyn_cast<ABI::Integer>(*it))) {
         assert(integer_type->getSize() <= 8);
 
         Classify(integer_type, FieldLow, FieldHigh);
-        offset += integer_type->getSize();
+        current_offset += integer_type->getSize();
+
+        // FIXME: do some code cleanup, there is a bit of repetition
+        if (current_offset <= 8) {
+          Low = Merge(Low, FieldLow);
+        } else {
+          High = Merge(High, FieldLow);
+        }
       } else if ((float_type = llvm::dyn_cast<ABI::FloatType>(*it))) {
         // something here
         assert(float_type->getSize() <= 8);
         Classify(float_type, FieldLow, FieldHigh);
-        offset += float_type->getSize();
+        current_offset += float_type->getSize();
+
+        // FIXME: do some code cleanup, there is a bit of repetition
+        if (current_offset <= 8) {
+          Low = Merge(Low, FieldLow);
+        } else {
+          // FIXME: as of current, classify does not understand that offset
+          // matters and sometime should be returned to high
+            // this is a jank fix, FieldLow
+          High = Merge(High, FieldLow);
+        }
       } else if ((struct_type = llvm::dyn_cast<ABI::StructType>(*it))) {
         Classify(struct_type, FieldLow, FieldHigh);
-        offset += struct_type->getSize();
+        current_offset += struct_type->getSize();
+
+        // FIXME: cleanup
+        Low = Merge(Low, FieldLow);
+        High = Merge(High, FieldHigh);
       } else {
         assert(false && "don't know how this happened!");
       }
 
-      Low = Merge(Low, FieldLow);
-      High = Merge(High, FieldHigh);
-
-      assert(offset > 0 && "how can this be possible?");
-      currentOffset += offset;
+      assert(current_offset > 0 && "how can this be possible?");
     }
 
-    PostMerger(Low, High, currentOffset);
+    PostMerger(Low, High, current_offset);
     return;
   }
 
