@@ -18,6 +18,8 @@ private:
 public:
   Type(TypeKind kind);
   TypeKind getKind() const;
+
+  uint64_t getSize() const;
 };
 
 // TODO: what is the point of this class for now?

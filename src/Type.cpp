@@ -8,6 +8,20 @@ using namespace ABI;
 Type::Type(TypeKind kind) : Kind(kind) {}
 Type::TypeKind Type::getKind() const { return Kind; }
 
+uint64_t Type::getSize() const {
+  switch (Kind) {
+  case FloatType:
+    return llvm::cast<ABI::FloatType>(this)->getSize();
+  case StructType:
+    return llvm::cast<ABI::StructType>(this)->getSize();
+  case Integer:
+    return llvm::cast<ABI::Integer>(this)->getSize();
+  default:
+    assert(false && "what type are you having?");
+    return 0;
+  }
+}
+
 Integer::Integer(uint64_t size) : ::Type(TypeKind::Integer), Size(size) {}
 Integer::Integer() : ::Type(TypeKind::Integer), Size(4) {}
 
@@ -22,19 +36,35 @@ bool Integer::classof(const Type *type) {
 
 uint64_t Integer::getSize() const { return Size; }
 
-StructType::StructType(llvm::SmallVector<Type *> elements)
-    : ::Type(TypeKind::StructType), elements(elements) {}
+// FIXME: clean this up?
+static void pushElements(llvm::SmallVector<Type *> &records,
+                         StructType::ElementIterator it,
+                         StructType::ElementIterator ie) {
 
-bool StructType::isAggregateType() const {
-  // FIXME: as of current we can only represent interger
-  // we need a way to represent other types
-  return true;
+  for (; it != ie; ++it) {
+    // recursively process struct type
+    if (llvm::isa<StructType>(*it)) {
+      StructType *some_type = llvm::dyn_cast<StructType>(*it);
+      pushElements(records, some_type->getStart(), some_type->getEnd());
+      continue;
+    }
+
+    records.push_back(*it);
+  }
 }
 
+StructType::StructType(llvm::SmallVector<Type *> elements)
+    : ::Type(TypeKind::StructType) {
+
+  // recursively push elements
+  pushElements(this->elements, elements.begin(), elements.end());
+}
+
+bool StructType::isAggregateType() const { return true; }
+
 bool StructType::isIntegerType() const {
-  // FIXME: as of current we can only represent interger
-  // we need a way to represent other types
-  return true;
+  assert(false && "This comparison makes no sense");
+  return false;
 }
 
 StructType::ElementIterator StructType::getStart() { return elements.begin(); }
@@ -70,7 +100,7 @@ bool StructType::classof(const Type *type) {
 FloatType::FloatType() : ::Type(TypeKind::FloatType), Size(4), Alignment(4) {}
 
 FloatType::FloatType(uint64_t size)
-    : Size(size), Alignment(size), ::Type(TypeKind::FloatType) {}
+    : ::Type(TypeKind::FloatType), Size(size), Alignment(size) {}
 
 bool FloatType::isIntegerType() const { return false; }
 bool FloatType::isFloat() const { return true; }
@@ -80,3 +110,13 @@ uint64_t FloatType::getSize() const { return Size; }
 bool FloatType::classof(const Type *type) {
   return type->getKind() == Type::TypeKind::FloatType;
 }
+
+PointerType::PointerType() : ::Type(TypeKind::PointerType) {}
+
+bool PointerType::isIntegerType() const {
+  assert(false && "not sure for now");
+  return true;
+}
+
+bool PointerType::isFloat() const { return false; }
+bool PointerType::isAggregateType() const { return false; }

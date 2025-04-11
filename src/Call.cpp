@@ -190,7 +190,52 @@ void X86_64ABIInfo::Classify(Type *type, Class &Low, Class &High) {
   assert(false && "unimplemented!");
 }
 
-llvm::Type *X86_64ABIInfo::getSSEType(Type *type) {
+llvm::Type *X86_64ABIInfo::getIntegerType(Type *type, uint64_t offset) {
+  // trivial case
+  ABI::Integer *int_type;
+  if ((int_type = llvm::dyn_cast<ABI::Integer>(type))) {
+    return llvm::Type::getIntNTy(Context, int_type->getSize() * 4);
+  }
+
+  // not trivial case
+  ABI::StructType *struct_type;
+  if ((struct_type = llvm::dyn_cast<ABI::StructType>(type))) {
+    uint64_t current_offset = 0;
+
+    // increment the iterator until we reach the offset we want
+    auto it = struct_type->getStart(), ie = struct_type->getEnd();
+    while (it != ie) {
+      if (current_offset == offset)
+        break;
+      current_offset += (*it)->getSize();
+      ++it;
+    }
+    assert(current_offset == offset &&
+           "invalid offset is provided. Are you sure?");
+
+    // we can have two float
+    Type *first = *it;
+    Type *second = nullptr;
+    if (it != ie)
+      second = *(++it);
+
+    // trivial case: there is only one float
+    assert(llvm::isa<ABI::Integer>(first));
+    if (second && !llvm::isa<ABI::Integer>(second))
+      return llvm::Type::getIntNTy(Context, first->getSize() * 4);
+
+    // FIXME: what about __fp16 or _Float16?
+    if (llvm::isa<ABI::Integer>(first) && llvm::isa<ABI::Integer>(second))
+      return llvm::Type::getIntNTy(Context,
+                                   (first->getSize() + second->getSize()) * 4);
+  }
+
+  assert(false && "not yet implemented");
+  return nullptr;
+}
+
+// offset: the offset required for record type
+llvm::Type *X86_64ABIInfo::getSSEType(Type *type, uint64_t offset) {
   FloatType *float_type;
   if ((float_type = llvm::dyn_cast<FloatType>(type))) {
     if (float_type->getSize() == 4)
@@ -201,19 +246,33 @@ llvm::Type *X86_64ABIInfo::getSSEType(Type *type) {
 
   StructType *struct_type;
   if ((struct_type = llvm::dyn_cast<StructType>(type))) {
-    // fixme:
-    // this is a false assumption: consider {int, int float, float}
-    // the first two may not always be float
-    auto elements = struct_type->getStart();
-    assert(llvm::isa<FloatType>(*elements));
-    FloatType *first = llvm::dyn_cast<FloatType>(*elements);
-    ++elements;
-    assert(llvm::isa<FloatType>(*elements));
-    FloatType *second = llvm::dyn_cast<FloatType>(*elements);
-    ++elements;
-    assert(first->getSize() == 4 && second->getSize() == 4);
+    uint64_t current_offset = 0;
 
-    return llvm::FixedVectorType::get(llvm::Type::getFloatTy(Context), 2);
+    // increment the iterator until we reach the offset we want
+    auto it = struct_type->getStart(), ie = struct_type->getEnd();
+    while (it != ie) {
+      if (current_offset == offset)
+        break;
+      current_offset += (*it)->getSize();
+      ++it;
+    }
+    assert(current_offset == offset &&
+           "invalid offset is provided. Are you sure?");
+
+    // we can have two float
+    Type *first = *it;
+    Type *second = nullptr;
+    if (it != ie)
+      second = *(++it);
+
+    // trivial case: there is only one float
+    assert(llvm::isa<FloatType>(first));
+    if (second && !llvm::isa<FloatType>(second))
+      return llvm::Type::getFloatTy(Context);
+
+    // FIXME: what about __fp16 or _Float16?
+    if (llvm::isa<FloatType>(first) && llvm::isa<FloatType>(second))
+      return llvm::FixedVectorType::get(llvm::Type::getFloatTy(Context), 2);
   }
 
   assert(false && "what did you input?");
@@ -260,27 +319,28 @@ void X86_64ABIInfo::ComputeInfo(FunctionInfo &FI) {
     switch (low) {
     case ABI::X86_64ABIInfo::Class::Integer:
       // defined by AMD64-ABI:
+      low_type = getIntegerType(it->Ty, 0);
       if (FreeIntRegs > 0) {
         // Use Register
         // TODO: fixme, nullptr is definitely not correct
-        it->Info = ABIArgInfo(Direct, nullptr);
+        it->Info = ABIArgInfo(Direct, low_type);
       } else {
         // Pushed to the stack
         // TODO: fixme, nullptr is definitely not correct
-        it->Info = ABIArgInfo(Indirect, nullptr);
+        it->Info = ABIArgInfo(Indirect, low_type);
       }
       --FreeIntRegs;
       break;
     case ABI::X86_64ABIInfo::Class::SSE:
       // defined by AMD64-ABI:
+      low_type = getSSEType(it->Ty, 0);
       if (FreeSSERegs > 0) {
         // Use Register
-        low_type = getSSEType(it->Ty);
         it->Info = ABIArgInfo(Direct, low_type);
       } else {
         // Pushed to the stack
         // TODO: fixme, nullptr is definitely not correct
-        it->Info = ABIArgInfo(Indirect, nullptr);
+        it->Info = ABIArgInfo(Indirect, low_type);
       }
       --FreeSSERegs;
       break;
@@ -298,8 +358,11 @@ void X86_64ABIInfo::ComputeInfo(FunctionInfo &FI) {
     llvm::Type *high_type = nullptr;
     switch (high) {
     case ABI::X86_64ABIInfo::Class::SSE:
+      // this may not always be correct
+      high_type = getSSEType(it->Ty, 8);
       break;
     case ABI::X86_64ABIInfo::Class::Integer:
+      high_type = getIntegerType(it->Ty, 8);
       break;
     case ABI::X86_64ABIInfo::Class::NoClass:
       break;

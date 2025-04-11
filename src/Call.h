@@ -40,7 +40,8 @@ public:
 private:
   llvm::LLVMContext &Context;
 
-  llvm::Type *getSSEType(Type *type);
+  llvm::Type *getSSEType(Type *type, uint64_t offset);
+  llvm::Type *getIntegerType(Type *type, uint64_t offset);
 
   void Classify(Type *type, Class &Low, Class &High);
   Class Merge(Class one, Class two);
