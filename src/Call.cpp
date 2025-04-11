@@ -194,7 +194,14 @@ llvm::Type *X86_64ABIInfo::getIntegerType(Type *type, uint64_t offset) {
   // trivial case
   ABI::Integer *int_type;
   if ((int_type = llvm::dyn_cast<ABI::Integer>(type))) {
-    return llvm::Type::getIntNTy(Context, int_type->getSize() * 4);
+    if (int_type->getSize() == 4) {
+      return llvm::Type::getInt32Ty(Context);
+    } else if (int_type->getSize() == 8) {
+      return llvm::Type::getInt64Ty(Context);
+
+    } else {
+      assert(false && "don't know how to do this");
+    }
   }
 
   // not trivial case
@@ -221,13 +228,13 @@ llvm::Type *X86_64ABIInfo::getIntegerType(Type *type, uint64_t offset) {
 
     // trivial case: there is only one float
     assert(llvm::isa<ABI::Integer>(first));
+    // FIXME: what about uint64_t?
     if (second && !llvm::isa<ABI::Integer>(second))
-      return llvm::Type::getIntNTy(Context, first->getSize() * 4);
+      return llvm::Type::getInt32Ty(Context);
 
-    // FIXME: what about __fp16 or _Float16?
     if (llvm::isa<ABI::Integer>(first) && llvm::isa<ABI::Integer>(second))
-      return llvm::Type::getIntNTy(Context,
-                                   (first->getSize() + second->getSize()) * 4);
+      if ((first->getSize() + second->getSize()) == 8)
+        return llvm::Type::getInt64Ty(Context);
   }
 
   assert(false && "not yet implemented");
