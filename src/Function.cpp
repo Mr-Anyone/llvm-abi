@@ -3,7 +3,7 @@
 
 using namespace ABI;
 
-FunctionInfo::FunctionInfo(std::vector<Type *> args, Type *ret,
+FunctionInfo::FunctionInfo(llvm::SmallVector<Type *> args, Type *ret,
                            CallingConvention conv)
     : Conv(conv), Args(), RetInfo{ret, ABIArgInfo()} {
 
@@ -30,7 +30,4 @@ FunctionArgInfo FunctionInfo::getReturnInfo() const { return RetInfo; }
 void FunctionInfo::setABIReturnInfo(const ABIArgInfo &info) {
   RetInfo.Info = info;
 }
-  llvm::Type *ABIArgInfo::getType() const{
-      return type;
-
-  }
+llvm::Type *ABIArgInfo::getType() const { return type; }

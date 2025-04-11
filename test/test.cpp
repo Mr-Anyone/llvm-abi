@@ -13,7 +13,7 @@ void TestOne() {
   // int func1(int, int);
   Integer arg(4);
   Integer arg_two(4);
-  std::vector<Type *> args{&arg, &arg_two};
+  llvm::SmallVector<Type *> args{&arg, &arg_two};
   Integer returnType(8);
   FunctionInfo FI(args, &returnType, ABI::CallingConvention::C);
 
@@ -34,7 +34,7 @@ void TestOne() {
 void TestTwo() {
   // handled by front end
   Integer arg(/*size*/ 8);
-  std::vector<Type *> record{&arg, &arg, &arg, &arg, &arg};
+  llvm::SmallVector<Type *> record{&arg, &arg, &arg, &arg, &arg};
   StructType arg_one(record);
 
   Integer returnType = ABI::Integer(/*size*/ 8);
@@ -64,7 +64,7 @@ void TestThree() {
   Integer b(4);
   FloatType c(4);
   FloatType d(4);
-  std::vector<Type *> record{&a, &b, &c, &d};
+  llvm::SmallVector<Type *> record{&a, &b, &c, &d};
   StructType arg(record);
   Integer return_type(4);
 
@@ -95,7 +95,7 @@ void TestFour() {
   FloatType b(4);
   Integer c(4);
   FloatType d(4);
-  std::vector<Type *> record{&a, &b, &c, &d};
+  llvm::SmallVector<Type *> record{&a, &b, &c, &d};
   StructType arg(record);
   Integer return_type(4);
 
@@ -128,7 +128,7 @@ void TestFive() {
   Integer c(4);
   FloatType d(4);
   Integer e(4);
-  std::vector<Type *> record{&a, &b, &c, &d, &e};
+  llvm::SmallVector<Type *> record{&a, &b, &c, &d, &e};
   StructType arg(record);
   Integer return_type(4);
 
@@ -182,7 +182,7 @@ void TestSeven() {
   // int some_func(some_type_t a);
   FloatType a(4);
   FloatType b(4);
-  std::vector<Type *> record{&a, &b}; // layout
+  llvm::SmallVector<Type *> record{&a, &b}; // layout
   StructType arg(record);
   Integer return_type(4);
 
@@ -214,7 +214,7 @@ void TestEight() {
   Integer b(4);
   FloatType c(4);
   FloatType d(4);
-  std::vector<Type *> record{&a, &b, &c, &d}; // layout
+  llvm::SmallVector<Type *> record{&a, &b, &c, &d}; // layout
   StructType arg(record);
   Integer return_type(4);
 

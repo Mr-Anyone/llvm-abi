@@ -22,7 +22,7 @@ bool Integer::classof(const Type *type) {
 
 uint64_t Integer::getSize() const { return Size; }
 
-StructType::StructType(std::vector<Type *> elements)
+StructType::StructType(llvm::SmallVector<Type *> elements)
     : ::Type(TypeKind::StructType), elements(elements) {}
 
 bool StructType::isAggregateType() const {
@@ -53,7 +53,7 @@ uint64_t StructType::getSize() const {
     } else if ((int_type = llvm::dyn_cast<ABI::Integer>(ele))) {
       size += int_type->getSize();
     } else if ((struct_type = llvm::dyn_cast<ABI::StructType>(ele))) {
-        size += struct_type->getSize();
+      size += struct_type->getSize();
     } else {
       assert(0 && "don't konw how to calculate size for struct type!");
     }

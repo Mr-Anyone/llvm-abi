@@ -1,6 +1,7 @@
 #ifndef TYPE_H
 #define TYPE_H
 
+#include "llvm/ADT/SmallVector.h"
 #include "llvm/Support/Casting.h"
 #include <stdint.h>
 #include <vector>
@@ -97,14 +98,13 @@ public:
   static bool classof(const Type *type);
 };
 
-// rename this to record type?
 class StructType : public Type {
 public:
-  using ElementIterator = std::vector<Type *>::iterator;
+  using ElementIterator = llvm::SmallVector<Type *>::iterator;
 
   // FIXME: think of a more intelligent way of passing parameter
   // there is also a question of alignmnet?
-  StructType(std::vector<Type *> elements);
+  StructType(llvm::SmallVector<Type *> elements);
 
   bool isHomogeneousType();
   uint64_t getSize() const;
@@ -120,7 +120,7 @@ public:
   static bool classof(const Type *type);
 
 private:
-  std::vector<Type *> elements;
+  llvm::SmallVector<Type *> elements;
 };
 
 } // namespace ABI

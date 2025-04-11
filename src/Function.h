@@ -93,9 +93,10 @@ struct FunctionArgInfo {
 
 class FunctionInfo {
 public:
-  using ArgIter = std::vector<FunctionArgInfo>::iterator;
+  using ArgIter = llvm::SmallVector<FunctionArgInfo>::iterator;
 
-  FunctionInfo(std::vector<Type *> args, Type *ret, CallingConvention conv);
+  FunctionInfo(llvm::SmallVector<Type *> args, Type *ret,
+               CallingConvention conv);
 
   ArgIter GetArgBegin();
   ArgIter GetArgEnd();
@@ -106,7 +107,7 @@ public:
 private:
   CallingConvention Conv;
 
-  std::vector<FunctionArgInfo> Args;
+  llvm::SmallVector<FunctionArgInfo> Args;
   FunctionArgInfo RetInfo;
 };
 } // namespace ABI

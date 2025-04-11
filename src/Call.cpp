@@ -6,7 +6,6 @@
 #include "llvm/Support/Casting.h"
 
 #include <cassert>
-#include <memory>
 
 using namespace ABI;
 
@@ -142,7 +141,6 @@ void X86_64ABIInfo::Classify(Type *type, Class &Low, Class &High) {
       ABI::StructType *struct_type;
 
       // calculate lowering type
-
       // FIXME: use switch statement instead
       if ((integer_type = llvm::dyn_cast<ABI::Integer>(*it))) {
         assert(integer_type->getSize() <= 8);
@@ -168,7 +166,7 @@ void X86_64ABIInfo::Classify(Type *type, Class &Low, Class &High) {
         } else {
           // FIXME: as of current, classify does not understand that offset
           // matters and sometime should be returned to high
-            // this is a jank fix, FieldLow
+          // this is a jank fix, FieldLow
           High = Merge(High, FieldLow);
         }
       } else if ((struct_type = llvm::dyn_cast<ABI::StructType>(*it))) {
@@ -217,6 +215,7 @@ llvm::Type *X86_64ABIInfo::getSSEType(Type *type) {
 
     return llvm::FixedVectorType::get(llvm::Type::getFloatTy(Context), 2);
   }
+
   assert(false && "what did you input?");
   return nullptr;
 }
@@ -256,6 +255,8 @@ void X86_64ABIInfo::ComputeInfo(FunctionInfo &FI) {
     assert(low != NoClass);
 
     // dealing with low
+    // move this into its own logic
+    llvm::Type *low_type = nullptr;
     switch (low) {
     case ABI::X86_64ABIInfo::Class::Integer:
       // defined by AMD64-ABI:
@@ -274,7 +275,8 @@ void X86_64ABIInfo::ComputeInfo(FunctionInfo &FI) {
       // defined by AMD64-ABI:
       if (FreeSSERegs > 0) {
         // Use Register
-        it->Info = ABIArgInfo(Direct, getSSEType(it->Ty));
+        low_type = getSSEType(it->Ty);
+        it->Info = ABIArgInfo(Direct, low_type);
       } else {
         // Pushed to the stack
         // TODO: fixme, nullptr is definitely not correct
@@ -291,6 +293,28 @@ void X86_64ABIInfo::ComputeInfo(FunctionInfo &FI) {
       break;
     default:
       assert(false && "unreachable statement. Not implemented yet");
+    }
+
+    llvm::Type *high_type = nullptr;
+    switch (high) {
+    case ABI::X86_64ABIInfo::Class::SSE:
+      break;
+    case ABI::X86_64ABIInfo::Class::Integer:
+      break;
+    case ABI::X86_64ABIInfo::Class::NoClass:
+      break;
+    case ABI::X86_64ABIInfo::Class::Memory:
+      break;
+    default:
+      assert(false && "how did we get here?");
+    }
+
+    if (high_type && it->Info.GetKind() == Direct) {
+      // making it as a pair
+      assert(low_type && high_type &&
+             "high and low type cannot both be nullptr");
+      llvm::StructType *final_type = llvm::StructType::get(low_type, high_type);
+      it->Info = ABIArgInfo(Direct, final_type);
     }
 
     // assert(high == NoClass);

@@ -18,7 +18,7 @@ A frontend might generate type information like this:
 
 ```cpp
 Integer arg(/*size*/ 8);
-std::vector<Type *> record{&arg, &arg, &arg, &arg, &arg};
+llvm::SmallVector<Type*> record{&arg, &arg, &arg, &arg, &arg};
 StructType arg_one(record);
 
 Integer returnType (/*size*/ 8);
