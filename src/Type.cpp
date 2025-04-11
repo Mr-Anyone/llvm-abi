@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <cmath>
 #include <cwchar>
+#include <iostream>
 
 using namespace ABI;
 
@@ -22,6 +23,25 @@ uint64_t Type::getSize() const {
   }
 }
 
+void Type::dump() const {
+  switch (Kind) {
+  case Integer:
+    llvm::cast<ABI::Integer>(this)->dump();
+    break;
+  case FloatType:
+    llvm::cast<ABI::FloatType>(this)->dump();
+    break;
+  case StructType:
+    llvm::cast<ABI::StructType>(this)->dump();
+    break;
+  case PointerType:
+    llvm::cast<ABI::PointerType>(this)->dump();
+    break;
+  default:
+    assert(false && "cannot dump tpye. Unknown type");
+  }
+}
+
 Integer::Integer(uint64_t size) : ::Type(TypeKind::Integer), Size(size) {}
 Integer::Integer() : ::Type(TypeKind::Integer), Size(4) {}
 
@@ -35,6 +55,8 @@ bool Integer::classof(const Type *type) {
 }
 
 uint64_t Integer::getSize() const { return Size; }
+
+void Integer::dump() const { std::cout << "Integer" << Size; }
 
 // FIXME: clean this up?
 static void pushElements(llvm::SmallVector<Type *> &records,
@@ -97,6 +119,16 @@ bool StructType::classof(const Type *type) {
   return type->getKind() == Type::TypeKind::StructType;
 }
 
+void StructType::dump() const {
+  // ece
+  std::cout << "{ ";
+  for (const Type *type : elements) {
+    type->dump();
+    std::cout << ",";
+  }
+  std::cout << " }";
+}
+
 FloatType::FloatType() : ::Type(TypeKind::FloatType), Size(4), Alignment(4) {}
 
 FloatType::FloatType(uint64_t size)
@@ -111,6 +143,8 @@ bool FloatType::classof(const Type *type) {
   return type->getKind() == Type::TypeKind::FloatType;
 }
 
+void FloatType::dump() const { std::cout << "Float" << Size; }
+
 PointerType::PointerType() : ::Type(TypeKind::PointerType) {}
 
 bool PointerType::isIntegerType() const {
@@ -120,3 +154,4 @@ bool PointerType::isIntegerType() const {
 
 bool PointerType::isFloat() const { return false; }
 bool PointerType::isAggregateType() const { return false; }
+void PointerType::dump() const { std::cout << "PTR" << Size; }

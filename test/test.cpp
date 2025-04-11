@@ -29,6 +29,9 @@ void TestOne() {
   ++ArgIterator;
   assert(ArgIterator->Info.GetKind() == Direct);
   std::cout << "Passed test one" << std::endl;
+
+  FI.dump();
+  
 }
 
 void TestTwo() {
@@ -49,6 +52,9 @@ void TestTwo() {
   auto ArgIterator = FI.GetArgBegin();
   ABIArgInfo abiInfo = ArgIterator->Info;
   assert(abiInfo.GetKind() == Indirect);
+
+  FI.dump();
+  
 
   std::cout << "Passed test two" << std::endl;
 }
@@ -78,6 +84,9 @@ void TestThree() {
   auto ArgIterator = FI.GetArgBegin();
   ABIArgInfo abiInfo = ArgIterator->Info;
   assert(abiInfo.GetKind() == Direct);
+
+  FI.dump();
+  
 
   std::cout << "Passed Test three" << std::endl;
 }
@@ -109,6 +118,9 @@ void TestFour() {
   auto ArgIterator = FI.GetArgBegin();
   ABIArgInfo abiInfo = ArgIterator->Info;
   assert(abiInfo.GetKind() == Direct);
+
+  FI.dump();
+  
 
   std::cout << "Passed test four" << std::endl;
 }
@@ -143,6 +155,9 @@ void TestFive() {
   ABIArgInfo abiInfo = ArgIterator->Info;
   assert(abiInfo.GetKind() == Indirect);
 
+  FI.dump();
+  
+
   std::cout << "Passed test five" << std::endl;
 }
 
@@ -168,6 +183,9 @@ void TestSix() {
   llvm::LLVMContext context;
   X86_64ABIInfo abiLowering(context);
   abiLowering.ComputeInfo(FI);
+
+  FI.dump();
+  
 
   assert(FI.getReturnInfo().Info.GetKind() == Direct);
   std::cout << "Passed test six" << std::endl;
@@ -200,6 +218,9 @@ void TestSeven() {
   assert(abiInfo.getType() ==
          llvm::FixedVectorType::get(llvm::Type::getFloatTy(context), 2));
 
+  FI.dump();
+  
+
   std::cout << "Passed test seven" << std::endl;
 }
 
@@ -228,6 +249,9 @@ void TestEight() {
   auto ArgIterator = FI.GetArgBegin();
   ABIArgInfo abiInfo = ArgIterator->Info;
   assert(abiInfo.GetKind() == Direct);
+
+  FI.dump();
+  
 
   std::cout << "Passed test eight" << std::endl;
 }

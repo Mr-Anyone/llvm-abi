@@ -104,6 +104,8 @@ public:
   FunctionArgInfo getReturnInfo() const;
   void setABIReturnInfo(const ABIArgInfo &info);
 
+  void dump() const;
+
 private:
   CallingConvention Conv;
 

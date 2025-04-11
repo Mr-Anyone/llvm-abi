@@ -20,6 +20,9 @@ public:
   TypeKind getKind() const;
 
   uint64_t getSize() const;
+
+  // write to stdin
+  void dump() const;
 };
 
 // TODO: what is the point of this class for now?
@@ -29,6 +32,13 @@ public:
   bool isIntegerType() const;
   bool isFloat() const;
   bool isAggregateType() const;
+
+  // write to stdin
+  void dump() const;
+
+  static bool classof(const Type *type) {
+    return type->getKind() == TypeKind::PointerType;
+  }
 
 private:
   uint64_t size;
@@ -70,6 +80,9 @@ public:
   bool isAggregateType() const;
 
   static bool classof(const Type *type);
+
+  // write to stdin
+  void dump() const;
 };
 
 class Integer : public Type {
@@ -98,6 +111,9 @@ public:
   uint64_t getAlignment() const;
 
   static bool classof(const Type *type);
+
+  // write to stdin
+  void dump() const;
 };
 
 class StructType : public Type {
@@ -120,6 +136,9 @@ public:
   bool isFloat() const;
 
   static bool classof(const Type *type);
+
+  // write to stdin
+  void dump() const;
 
 private:
   llvm::SmallVector<Type *> elements;
