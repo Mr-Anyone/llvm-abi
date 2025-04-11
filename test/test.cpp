@@ -79,7 +79,7 @@ void TestThree() {
   ABIArgInfo abiInfo = ArgIterator->Info;
   assert(abiInfo.GetKind() == Direct);
 
-  std::cout << "Passed Test Three" << std::endl;
+  std::cout << "Passed Test three" << std::endl;
 }
 
 void TestFour() {
