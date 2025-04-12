@@ -14,7 +14,7 @@ This library is designed to assist **language frontend developers** by providing
 
 ### Updates Since V1
 
-** LLVM Type Information ** are now also given in [`ABIArgInfo.cpp`](./src/Function.cpp). See below for an example.
+**LLVM Type Information** are now also given in [`ABIArgInfo.cpp`](./src/Function.cpp). See below for an example.
 
 ### Example Usage  
 
