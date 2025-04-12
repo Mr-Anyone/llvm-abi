@@ -31,14 +31,13 @@ void TestOne() {
   std::cout << "Passed test one" << std::endl;
 
   FI.dump();
-  
 }
 
 void TestTwo() {
   // handled by front end
   Integer arg(/*size*/ 8);
-  llvm::SmallVector<Type *> record{&arg, &arg, &arg, &arg, &arg};
-  StructType arg_one(record);
+  llvm::SmallVector<Type *> layout{&arg, &arg, &arg, &arg, &arg};
+  StructType arg_one(layout);
 
   Integer returnType = ABI::Integer(/*size*/ 8);
   FunctionInfo FI({&arg_one}, &returnType, ABI::CallingConvention::C);
@@ -54,7 +53,6 @@ void TestTwo() {
   assert(abiInfo.GetKind() == Indirect);
 
   FI.dump();
-  
 
   std::cout << "Passed test two" << std::endl;
 }
@@ -70,8 +68,8 @@ void TestThree() {
   Integer b(4);
   FloatType c(4);
   FloatType d(4);
-  llvm::SmallVector<Type *> record{&a, &b, &c, &d};
-  StructType arg(record);
+  llvm::SmallVector<Type *> layout{&a, &b, &c, &d};
+  StructType arg(layout);
   Integer return_type(4);
 
   FunctionInfo FI({&arg}, &return_type, ABI::CallingConvention::C);
@@ -86,7 +84,6 @@ void TestThree() {
   assert(abiInfo.GetKind() == Direct);
 
   FI.dump();
-  
 
   std::cout << "Passed Test three" << std::endl;
 }
@@ -104,8 +101,8 @@ void TestFour() {
   FloatType b(4);
   Integer c(4);
   FloatType d(4);
-  llvm::SmallVector<Type *> record{&a, &b, &c, &d};
-  StructType arg(record);
+  llvm::SmallVector<Type *> layout{&a, &b, &c, &d};
+  StructType arg(layout);
   Integer return_type(4);
 
   FunctionInfo FI({&arg}, &return_type, ABI::CallingConvention::C);
@@ -120,7 +117,6 @@ void TestFour() {
   assert(abiInfo.GetKind() == Direct);
 
   FI.dump();
-  
 
   std::cout << "Passed test four" << std::endl;
 }
@@ -140,8 +136,8 @@ void TestFive() {
   Integer c(4);
   FloatType d(4);
   Integer e(4);
-  llvm::SmallVector<Type *> record{&a, &b, &c, &d, &e};
-  StructType arg(record);
+  llvm::SmallVector<Type *> layout{&a, &b, &c, &d, &e};
+  StructType arg(layout);
   Integer return_type(4);
 
   FunctionInfo FI({&arg}, &return_type, ABI::CallingConvention::C);
@@ -156,7 +152,6 @@ void TestFive() {
   assert(abiInfo.GetKind() == Indirect);
 
   FI.dump();
-  
 
   std::cout << "Passed test five" << std::endl;
 }
@@ -185,7 +180,6 @@ void TestSix() {
   abiLowering.ComputeInfo(FI);
 
   FI.dump();
-  
 
   assert(FI.getReturnInfo().Info.GetKind() == Direct);
   std::cout << "Passed test six" << std::endl;
@@ -200,8 +194,8 @@ void TestSeven() {
   // int some_func(some_type_t a);
   FloatType a(4);
   FloatType b(4);
-  llvm::SmallVector<Type *> record{&a, &b}; // layout
-  StructType arg(record);
+  llvm::SmallVector<Type *> layout{&a, &b}; // layout
+  StructType arg(layout);
   Integer return_type(4);
 
   FunctionInfo FI({&arg}, &return_type, ABI::CallingConvention::C);
@@ -219,7 +213,6 @@ void TestSeven() {
          llvm::FixedVectorType::get(llvm::Type::getFloatTy(context), 2));
 
   FI.dump();
-  
 
   std::cout << "Passed test seven" << std::endl;
 }
@@ -235,8 +228,8 @@ void TestEight() {
   Integer b(4);
   FloatType c(4);
   FloatType d(4);
-  llvm::SmallVector<Type *> record{&a, &b, &c, &d}; // layout
-  StructType arg(record);
+  llvm::SmallVector<Type *> layout{&a, &b, &c, &d}; // layout
+  StructType arg(layout);
   Integer return_type(4);
 
   FunctionInfo FI({&arg}, &return_type, ABI::CallingConvention::C);
@@ -244,14 +237,20 @@ void TestEight() {
   X86_64ABIInfo abiLowering(context);
   abiLowering.ComputeInfo(FI);
 
-  assert(FI.getReturnInfo().Info.GetKind() == Direct);
+  ABIArgInfo abi_return_info  = FI.getReturnInfo().Info;
+  assert(abi_return_info.GetKind() == Direct);
 
   auto ArgIterator = FI.GetArgBegin();
   ABIArgInfo abiInfo = ArgIterator->Info;
   assert(abiInfo.GetKind() == Direct);
 
+  // {i64, < 2 x float>}
+  assert(abiInfo.getType() ==
+         llvm::StructType::get(
+             llvm::Type::getInt64Ty(context),
+             llvm::FixedVectorType::get(llvm::Type::getFloatTy(context), 2)));
+
   FI.dump();
-  
 
   std::cout << "Passed test eight" << std::endl;
 }
