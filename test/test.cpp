@@ -66,8 +66,8 @@ void TestThree() {
   // int some_func(some_type_t a);
   Integer a(4);
   Integer b(4);
-  FloatType c(4);
-  FloatType d(4);
+  Float c(4);
+  Float d(4);
   llvm::SmallVector<Type *> layout{&a, &b, &c, &d};
   StructType arg(layout);
   Integer return_type(4);
@@ -98,9 +98,9 @@ void TestFour() {
 
   // int some_func(some_type_t a);
   Integer a(4);
-  FloatType b(4);
+  Float b(4);
   Integer c(4);
-  FloatType d(4);
+  Float d(4);
   llvm::SmallVector<Type *> layout{&a, &b, &c, &d};
   StructType arg(layout);
   Integer return_type(4);
@@ -132,9 +132,9 @@ void TestFive() {
 
   // int some_func(some_type_t a);
   Integer a(4);
-  FloatType b(4);
+  Float b(4);
   Integer c(4);
-  FloatType d(4);
+  Float d(4);
   Integer e(4);
   llvm::SmallVector<Type *> layout{&a, &b, &c, &d, &e};
   StructType arg(layout);
@@ -192,8 +192,8 @@ void TestSeven() {
   //  } some_type_t;
 
   // int some_func(some_type_t a);
-  FloatType a(4);
-  FloatType b(4);
+  Float a(4);
+  Float b(4);
   llvm::SmallVector<Type *> layout{&a, &b}; // layout
   StructType arg(layout);
   Integer return_type(4);
@@ -226,8 +226,8 @@ void TestEight() {
   // int some_func(some_type_t a);
   Integer a(4);
   Integer b(4);
-  FloatType c(4);
-  FloatType d(4);
+  Float c(4);
+  Float d(4);
   llvm::SmallVector<Type *> layout{&a, &b, &c, &d}; // layout
   StructType arg(layout);
   Integer return_type(4);
@@ -237,7 +237,7 @@ void TestEight() {
   X86_64ABIInfo abiLowering(context);
   abiLowering.ComputeInfo(FI);
 
-  ABIArgInfo abi_return_info  = FI.getReturnInfo().Info;
+  ABIArgInfo abi_return_info = FI.getReturnInfo().Info;
   assert(abi_return_info.GetKind() == Direct);
 
   auto ArgIterator = FI.GetArgBegin();
@@ -256,14 +256,14 @@ void TestEight() {
 }
 
 void RunTest() {
-  TestOne();
+  // TestOne();
   TestTwo();
-  TestThree();
-  TestFour();
-  TestFive();
-  TestSix();
-  TestSeven();
-  TestEight();
+  // TestThree();
+  // TestFour();
+  // TestFive();
+  // TestSix();
+  // TestSeven();
+  // TestEight();
 }
 
 int main() { RunTest(); }

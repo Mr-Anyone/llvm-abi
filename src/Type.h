@@ -2,6 +2,7 @@
 #define TYPE_H
 
 #include "llvm/ADT/SmallVector.h"
+#include "llvm/IR/Type.h"
 #include "llvm/Support/Casting.h"
 #include <stdint.h>
 #include <vector>
@@ -10,7 +11,7 @@ namespace ABI {
 
 class Type {
 public:
-  enum TypeKind { BuiltIn, Integer, StructType, FloatType, PointerType, Size };
+  enum TypeKind { BuiltIn, Integer, StructType, Float, PointerType, Size };
 
 private:
   const TypeKind Kind;
@@ -19,6 +20,8 @@ public:
   Type(TypeKind kind);
   TypeKind getKind() const;
 
+  // Is this even a correct approach?
+  llvm::Type *toLLVM(llvm::LLVMContext &context) const;
   uint64_t getSize() const;
 
   // write to stdin
@@ -44,33 +47,11 @@ private:
   uint64_t size;
 };
 
-class FloatType : public Type {
+class Float : public Type {
 public:
-  // some way to do stuff
-  // Taken from System-v abi, these
-  // are called Fundamental Type
-  enum FloatingType {
-    Float = 0,
-    Double,
-    Long_Double,
-    Float_128,
-    Decimal32,
-    Decimal64,
-    Decimal128,
+  Float();
 
-    Num
-  };
-
-private:
-  uint64_t Size;
-  uint64_t Alignment;
-
-public:
-  FloatType();
-  // FIXME: add this later on
-  FloatType(FloatingType type);
-
-  FloatType(uint64_t size);
+  Float(uint64_t size);
 
   uint64_t getSize() const;
   uint64_t getAlignment() const;
@@ -83,20 +64,13 @@ public:
 
   // write to stdin
   void dump() const;
+
+private:
+  uint64_t Size;
+  uint64_t Alignment;
 };
 
 class Integer : public Type {
-public:
-  // Fundamental type taken from 3.1 system v abi
-  enum IntegerType {
-
-  };
-
-private:
-  // size of the integer in bytes
-  uint64_t Size;
-  uint64_t Alignment;
-
 public:
   Integer(uint64_t size);
 
@@ -114,8 +88,16 @@ public:
 
   // write to stdin
   void dump() const;
+
+private:
+  // size of the integer in bytes
+  uint64_t Size;
+  uint64_t Alignment;
 };
 
+// FIXME: this type need to store two things:
+// 1. The underlying type information
+// 2. The memory layout for each specific type
 class StructType : public Type {
 public:
   using ElementIterator = llvm::SmallVector<Type *>::iterator;

@@ -14,22 +14,25 @@ void test_one() {
 }
 
 void test_two() {
-  FloatType original_type(4);
+  Float original_type(4);
   Type *sometype = &original_type;
-  FloatType *test_cast = llvm::dyn_cast<FloatType>(sometype);
+  Float *test_cast = llvm::dyn_cast<Float>(sometype);
 }
 
 void test_three() {
-  FloatType original_type(4);
+  Float original_type(4);
   Type *copy_type = &original_type;
-  FloatType *some_type = llvm::dyn_cast<FloatType>(copy_type);
+  Float *some_type = llvm::dyn_cast<Float>(copy_type);
 
   assert(some_type->getSize() == 4);
 }
+
+void test_four() { std::cout << "I have passed test four" << std::endl; }
 
 int main() {
   test_one();
   test_two();
   test_three();
+  test_four();
   std::cout << "You have passed all test!" << std::endl;
 }

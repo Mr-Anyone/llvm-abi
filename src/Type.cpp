@@ -4,15 +4,31 @@
 #include <cwchar>
 #include <iostream>
 
+#include <llvm/IR/DerivedTypes.h>
+
 using namespace ABI;
+
+llvm::Type *Type::toLLVM(llvm::LLVMContext &context) const {
+  switch (Kind) {
+  case Integer: {
+    uint64_t integer_size = (llvm::cast<ABI::Integer>(this))->getSize();
+    return llvm::Type::getIntNTy(context, integer_size);
+  }
+  case Float: {
+    return llvm::Type::getFloatTy(context);
+  }
+  default:
+    assert(false && "don't know how to transform this into the llvm type!");
+  }
+}
 
 Type::Type(TypeKind kind) : Kind(kind) {}
 Type::TypeKind Type::getKind() const { return Kind; }
 
 uint64_t Type::getSize() const {
   switch (Kind) {
-  case FloatType:
-    return llvm::cast<ABI::FloatType>(this)->getSize();
+  case Float:
+    return llvm::cast<ABI::Float>(this)->getSize();
   case StructType:
     return llvm::cast<ABI::StructType>(this)->getSize();
   case Integer:
@@ -28,8 +44,8 @@ void Type::dump() const {
   case Integer:
     llvm::cast<ABI::Integer>(this)->dump();
     break;
-  case FloatType:
-    llvm::cast<ABI::FloatType>(this)->dump();
+  case Float:
+    llvm::cast<ABI::Float>(this)->dump();
     break;
   case StructType:
     llvm::cast<ABI::StructType>(this)->dump();
@@ -96,11 +112,11 @@ StructType::ElementIterator StructType::getEnd() { return elements.end(); }
 uint64_t StructType::getSize() const {
   uint64_t size = 0;
   for (Type *ele : elements) {
-    ABI::FloatType *some_type;
+    ABI::Float *some_type;
     ABI::Integer *int_type;
     ABI::StructType *struct_type;
 
-    if ((some_type = llvm::dyn_cast<ABI::FloatType>(ele))) {
+    if ((some_type = llvm::dyn_cast<ABI::Float>(ele))) {
       size += some_type->getSize();
     } else if ((int_type = llvm::dyn_cast<ABI::Integer>(ele))) {
       size += int_type->getSize();
@@ -130,21 +146,21 @@ void StructType::dump() const {
   std::cout << " }";
 }
 
-FloatType::FloatType() : ::Type(TypeKind::FloatType), Size(4), Alignment(4) {}
+Float::Float() : ::Type(TypeKind::Float), Size(4), Alignment(4) {}
 
-FloatType::FloatType(uint64_t size)
-    : ::Type(TypeKind::FloatType), Size(size), Alignment(size) {}
+Float::Float(uint64_t size)
+    : ::Type(TypeKind::Float), Size(size), Alignment(size) {}
 
-bool FloatType::isIntegerType() const { return false; }
-bool FloatType::isFloat() const { return true; }
-bool FloatType::isAggregateType() const { return false; }
-uint64_t FloatType::getSize() const { return Size; }
+bool Float::isIntegerType() const { return false; }
+bool Float::isFloat() const { return true; }
+bool Float::isAggregateType() const { return false; }
+uint64_t Float::getSize() const { return Size; }
 
-bool FloatType::classof(const Type *type) {
-  return type->getKind() == Type::TypeKind::FloatType;
+bool Float::classof(const Type *type) {
+  return type->getKind() == Type::TypeKind::Float;
 }
 
-void FloatType::dump() const { std::cout << "Float" << Size * 8; }
+void Float::dump() const { std::cout << "Float" << Size * 8; }
 
 PointerType::PointerType() : ::Type(TypeKind::PointerType) {}
 

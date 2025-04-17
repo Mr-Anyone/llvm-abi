@@ -23,8 +23,8 @@ A frontend might generate type information like this:
 ```cpp
 Integer a(4);
 Integer b(4);
-FloatType c(4);
-FloatType d(4);
+Float c(4);
+Float d(4);
 llvm::SmallVector<Type *> layout{&a, &b, &c, &d}; // layout
 StructType arg(layout);
 Integer return_type(4);

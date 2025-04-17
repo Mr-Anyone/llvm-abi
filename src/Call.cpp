@@ -86,10 +86,10 @@ void X86_64ABIInfo::Classify(Type *type, Class &Low, Class &High) {
     }
   }
 
-  ABI::FloatType *float_type;
+  ABI::Float *float_type;
   // basically the following type as of so far:
   // float, double, _Decimal32, _Decimal64 and __m64 are in class SSE.
-  if ((float_type = llvm::dyn_cast<::FloatType>(type))) {
+  if ((float_type = llvm::dyn_cast<::Float>(type))) {
     if (float_type->getSize() <= 8) {
       Low = SSE;
       return;
@@ -137,7 +137,7 @@ void X86_64ABIInfo::Classify(Type *type, Class &Low, Class &High) {
 
       Class FieldLow, FieldHigh;
       ABI::Integer *integer_type;
-      ABI::FloatType *float_type;
+      ABI::Float *float_type;
       ABI::StructType *struct_type;
 
       // calculate lowering type
@@ -154,7 +154,7 @@ void X86_64ABIInfo::Classify(Type *type, Class &Low, Class &High) {
         } else {
           High = Merge(High, FieldLow);
         }
-      } else if ((float_type = llvm::dyn_cast<ABI::FloatType>(*it))) {
+      } else if ((float_type = llvm::dyn_cast<ABI::Float>(*it))) {
         // something here
         assert(float_type->getSize() <= 8);
         Classify(float_type, FieldLow, FieldHigh);
@@ -232,7 +232,7 @@ llvm::Type *X86_64ABIInfo::getIntegerType(Type *type, uint64_t offset) {
     if (first && second)
       return llvm::Type::getInt64Ty(Context);
 
-    if(first && !second)
+    if (first && !second)
       return llvm::Type::getInt32Ty(Context);
 
     // if (llvm::isa<ABI::Integer>(first) && llvm::isa<ABI::Integer>(second))
@@ -246,8 +246,8 @@ llvm::Type *X86_64ABIInfo::getIntegerType(Type *type, uint64_t offset) {
 
 // offset: the offset required for record type
 llvm::Type *X86_64ABIInfo::getSSEType(Type *type, uint64_t offset) {
-  FloatType *float_type;
-  if ((float_type = llvm::dyn_cast<FloatType>(type))) {
+  Float *float_type;
+  if ((float_type = llvm::dyn_cast<Float>(type))) {
     if (float_type->getSize() == 4)
       return llvm::Type::getFloatTy(Context);
     else
@@ -276,12 +276,12 @@ llvm::Type *X86_64ABIInfo::getSSEType(Type *type, uint64_t offset) {
       second = *(++it);
 
     // trivial case: there is only one float
-    assert(llvm::isa<FloatType>(first));
-    if (second && !llvm::isa<FloatType>(second))
+    assert(llvm::isa<Float>(first));
+    if (second && !llvm::isa<Float>(second))
       return llvm::Type::getFloatTy(Context);
 
     // FIXME: what about __fp16 or _Float16?
-    if (llvm::isa<FloatType>(first) && llvm::isa<FloatType>(second))
+    if (llvm::isa<Float>(first) && llvm::isa<Float>(second))
       return llvm::FixedVectorType::get(llvm::Type::getFloatTy(Context), 2);
   }
 
@@ -382,8 +382,8 @@ void X86_64ABIInfo::ComputeInfo(FunctionInfo &FI) {
       assert(false && "how did we get here?");
     }
 
+    // we are making a pair it is direct
     if (high_type && it->Info.GetKind() == Direct) {
-      // making it as a pair
       assert(low_type && high_type &&
              "high and low type cannot both be nullptr");
       llvm::StructType *final_type = llvm::StructType::get(low_type, high_type);
