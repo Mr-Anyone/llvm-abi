@@ -1,4 +1,5 @@
 #include "Type.h"
+#include "llvm/IR/LLVMContext.h"
 #include "llvm/Support/Casting.h"
 #include <iostream>
 
@@ -27,7 +28,18 @@ void test_three() {
   assert(some_type->getSize() == 4);
 }
 
-void test_four() { std::cout << "I have passed test four" << std::endl; }
+void test_four() {
+  Integer a(4);
+  Float b(4);
+  Integer c(4);
+  Float d(4);
+  llvm::SmallVector<Type *> layout{&a, &b, &c, &d};
+  StructType arg(layout);
+  llvm::LLVMContext context{};
+  arg.toLLVM(context)->dump();
+
+  std::cout << "I have passed test four" << std::endl;
+}
 
 int main() {
   test_one();

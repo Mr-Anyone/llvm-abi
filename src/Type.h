@@ -21,7 +21,8 @@ public:
   TypeKind getKind() const;
 
   // Is this even a correct approach?
-  llvm::Type *toLLVM(llvm::LLVMContext &context) const;
+  // FIXME: make this a const
+  llvm::Type *toLLVM(llvm::LLVMContext &context);
   uint64_t getSize() const;
 
   // write to stdin
@@ -101,6 +102,7 @@ private:
 class StructType : public Type {
 public:
   using ElementIterator = llvm::SmallVector<Type *>::iterator;
+  using ElementIteratorConst = llvm::SmallVector<Type *>::const_iterator;
 
   // FIXME: think of a more intelligent way of passing parameter
   // there is also a question of alignmnet?

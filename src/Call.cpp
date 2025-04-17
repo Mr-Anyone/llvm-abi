@@ -358,8 +358,9 @@ void X86_64ABIInfo::ComputeInfo(FunctionInfo &FI) {
     case ABI::X86_64ABIInfo::Class::Complex:
     case ABI::X86_64ABIInfo::Class::X87:
     case ABI::X86_64ABIInfo::Class::Memory:
-      // TODO: fixme, nullptr is definitely not correct
-      it->Info = ABIArgInfo(Indirect, nullptr);
+      it->Info =
+          ABIArgInfo(Indirect, llvm::PointerType::get((it->Ty->toLLVM(Context)),
+                                                      /*AddressSpace=*/0));
       break;
     default:
       assert(false && "unreachable statement. Not implemented yet");
@@ -377,6 +378,7 @@ void X86_64ABIInfo::ComputeInfo(FunctionInfo &FI) {
     case ABI::X86_64ABIInfo::Class::NoClass:
       break;
     case ABI::X86_64ABIInfo::Class::Memory:
+      // has been handled in low!
       break;
     default:
       assert(false && "how did we get here?");

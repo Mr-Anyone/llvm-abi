@@ -8,14 +8,24 @@
 
 using namespace ABI;
 
-llvm::Type *Type::toLLVM(llvm::LLVMContext &context) const {
+llvm::Type *Type::toLLVM(llvm::LLVMContext &context) {
   switch (Kind) {
   case Integer: {
-    uint64_t integer_size = (llvm::cast<ABI::Integer>(this))->getSize();
+    uint64_t integer_size = (llvm::cast<ABI::Integer>(this))->getSize() * 8;
     return llvm::Type::getIntNTy(context, integer_size);
   }
   case Float: {
     return llvm::Type::getFloatTy(context);
+  }
+  case StructType: {
+    ABI::StructType *current_type = llvm::cast<ABI::StructType>(this);
+    llvm::SmallVector<llvm::Type *> elements{};
+    for (auto it = current_type->getStart(), ie = current_type->getEnd();
+         it != ie; ++it) {
+      elements.push_back((*it)->toLLVM(context));
+    }
+
+    return llvm::StructType::create(elements);
   }
   default:
     assert(false && "don't know how to transform this into the llvm type!");
