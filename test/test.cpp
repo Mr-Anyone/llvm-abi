@@ -256,14 +256,14 @@ void TestEight() {
 }
 
 void RunTest() {
-  // TestOne();
+   TestOne();
   TestTwo();
-  // TestThree();
-  // TestFour();
-  // TestFive();
-  // TestSix();
-  // TestSeven();
-  // TestEight();
+   TestThree();
+   TestFour();
+   TestFive();
+   TestSix();
+   TestSeven();
+   TestEight();
 }
 
 int main() { RunTest(); }

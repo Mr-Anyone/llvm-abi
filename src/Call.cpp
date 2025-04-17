@@ -358,9 +358,7 @@ void X86_64ABIInfo::ComputeInfo(FunctionInfo &FI) {
     case ABI::X86_64ABIInfo::Class::Complex:
     case ABI::X86_64ABIInfo::Class::X87:
     case ABI::X86_64ABIInfo::Class::Memory:
-      it->Info =
-          ABIArgInfo(Indirect, llvm::PointerType::get((it->Ty->toLLVM(Context)),
-                                                      /*AddressSpace=*/0));
+      it->Info = ABIArgInfo(Indirect, it->Ty->toLLVM(Context));
       break;
     default:
       assert(false && "unreachable statement. Not implemented yet");
