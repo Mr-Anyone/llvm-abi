@@ -66,8 +66,8 @@ void TestThree() {
   // int some_func(some_type_t a);
   Integer a(4);
   Integer b(4);
-  Float c(4);
-  Float d(4);
+  Float c;
+  Float d;
   llvm::SmallVector<Type *> layout{&a, &b, &c, &d};
   StructType arg(layout);
   Integer return_type(4);
@@ -98,9 +98,9 @@ void TestFour() {
 
   // int some_func(some_type_t a);
   Integer a(4);
-  Float b(4);
+  Float b;
   Integer c(4);
-  Float d(4);
+  Float d;
   llvm::SmallVector<Type *> layout{&a, &b, &c, &d};
   StructType arg(layout);
   Integer return_type(4);
@@ -132,9 +132,9 @@ void TestFive() {
 
   // int some_func(some_type_t a);
   Integer a(4);
-  Float b(4);
+  Float b;
   Integer c(4);
-  Float d(4);
+  Float d;
   Integer e(4);
   llvm::SmallVector<Type *> layout{&a, &b, &c, &d, &e};
   StructType arg(layout);
@@ -192,8 +192,8 @@ void TestSeven() {
   //  } some_type_t;
 
   // int some_func(some_type_t a);
-  Float a(4);
-  Float b(4);
+  Float a;
+  Float b;
   llvm::SmallVector<Type *> layout{&a, &b}; // layout
   StructType arg(layout);
   Integer return_type(4);
@@ -226,8 +226,8 @@ void TestEight() {
   // int some_func(some_type_t a);
   Integer a(4);
   Integer b(4);
-  Float c(4);
-  Float d(4);
+  Float c;
+  Float d;
   llvm::SmallVector<Type *> layout{&a, &b, &c, &d}; // layout
   StructType arg(layout);
   Integer return_type(4);

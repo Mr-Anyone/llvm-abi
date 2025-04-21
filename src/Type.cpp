@@ -158,8 +158,6 @@ void StructType::dump() const {
 
 Float::Float() : ::Type(TypeKind::Float), Size(4), Alignment(4) {}
 
-Float::Float(uint64_t size)
-    : ::Type(TypeKind::Float), Size(size), Alignment(size) {}
 
 bool Float::isIntegerType() const { return false; }
 bool Float::isFloat() const { return true; }

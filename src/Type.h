@@ -52,7 +52,6 @@ class Float : public Type {
 public:
   Float();
 
-  Float(uint64_t size);
 
   uint64_t getSize() const;
   uint64_t getAlignment() const;

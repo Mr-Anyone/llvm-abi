@@ -15,13 +15,13 @@ void test_one() {
 }
 
 void test_two() {
-  Float original_type(4);
+  Float original_type;
   Type *sometype = &original_type;
   Float *test_cast = llvm::dyn_cast<Float>(sometype);
 }
 
 void test_three() {
-  Float original_type(4);
+  Float original_type;
   Type *copy_type = &original_type;
   Float *some_type = llvm::dyn_cast<Float>(copy_type);
 
@@ -30,9 +30,9 @@ void test_three() {
 
 void test_four() {
   Integer a(4);
-  Float b(4);
+  Float b;
   Integer c(4);
-  Float d(4);
+  Float d;
   llvm::SmallVector<Type *> layout{&a, &b, &c, &d};
   StructType arg(layout);
   llvm::LLVMContext context{};
