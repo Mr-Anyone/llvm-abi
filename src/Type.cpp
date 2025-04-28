@@ -8,31 +8,31 @@
 
 using namespace ABI;
 
-llvm::Type *Type::toLLVM(llvm::LLVMContext &context) {
+llvm::Type *Type::toLLVM(llvm::LLVMContext &Context) {
   switch (Kind) {
   case Integer: {
-    uint64_t integer_size = (llvm::cast<ABI::Integer>(this))->getSize() * 8;
-    return llvm::Type::getIntNTy(context, integer_size);
+    uint64_t IntegerSize = (llvm::cast<ABI::Integer>(this))->getSize() * 8;
+    return llvm::Type::getIntNTy(Context, IntegerSize);
   }
   case Float: {
-    return llvm::Type::getFloatTy(context);
+    return llvm::Type::getFloatTy(Context);
   }
   case StructType: {
-    ABI::StructType *current_type = llvm::cast<ABI::StructType>(this);
-    llvm::SmallVector<llvm::Type *> elements{};
-    for (auto it = current_type->getStart(), ie = current_type->getEnd();
+    ABI::StructType *CurrentType = llvm::cast<ABI::StructType>(this);
+    llvm::SmallVector<llvm::Type *> Elements{};
+    for (auto it = CurrentType->getStart(), ie = CurrentType->getEnd();
          it != ie; ++it) {
-      elements.push_back((*it)->toLLVM(context));
+      Elements.push_back((*it)->toLLVM(Context));
     }
 
-    return llvm::StructType::create(elements);
+    return llvm::StructType::create(Elements);
   }
   default:
     assert(false && "don't know how to transform this into the llvm type!");
   }
 }
 
-Type::Type(TypeKind kind) : Kind(kind) {}
+Type::Type(TypeKind Kind) : Kind(Kind) {}
 Type::TypeKind Type::getKind() const { return Kind; }
 
 uint64_t Type::getSize() const {
@@ -68,7 +68,7 @@ void Type::dump() const {
   }
 }
 
-Integer::Integer(uint64_t size) : ::Type(TypeKind::Integer), Size(size) {}
+Integer::Integer(uint64_t Size) : ::Type(TypeKind::Integer), Size(Size) {}
 Integer::Integer() : ::Type(TypeKind::Integer), Size(4) {}
 
 bool Integer::isFloat() const { return false; }
@@ -76,8 +76,8 @@ bool Integer::isFloat() const { return false; }
 bool Integer::isIntegerType() const { return true; }
 bool Integer::isAggregateType() const { return false; }
 
-bool Integer::classof(const Type *type) {
-  return type->getKind() == TypeKind::Integer;
+bool Integer::classof(const Type *Ty) {
+  return Ty->getKind() == TypeKind::Integer;
 }
 
 uint64_t Integer::getSize() const { return Size; }
@@ -85,27 +85,27 @@ uint64_t Integer::getSize() const { return Size; }
 void Integer::dump() const { std::cout << "Integer" << Size * 8; }
 
 // FIXME: clean this up?
-static void pushElements(llvm::SmallVector<Type *> &records,
-                         StructType::ElementIterator it,
-                         StructType::ElementIterator ie) {
+static void pushElements(llvm::SmallVector<Type *> &Records,
+                         StructType::ElementIterator It,
+                         StructType::ElementIterator Ie) {
 
-  for (; it != ie; ++it) {
+  for (; It != Ie; ++It) {
     // recursively process struct type
-    if (llvm::isa<StructType>(*it)) {
-      StructType *some_type = llvm::dyn_cast<StructType>(*it);
-      pushElements(records, some_type->getStart(), some_type->getEnd());
+    if (llvm::isa<StructType>(*It)) {
+      StructType *some_type = llvm::dyn_cast<StructType>(*It);
+      pushElements(Records, some_type->getStart(), some_type->getEnd());
       continue;
     }
 
-    records.push_back(*it);
+    Records.push_back(*It);
   }
 }
 
-StructType::StructType(llvm::SmallVector<Type *> elements)
+StructType::StructType(llvm::SmallVector<Type *> Elements)
     : ::Type(TypeKind::StructType) {
 
   // recursively push elements
-  pushElements(this->elements, elements.begin(), elements.end());
+  pushElements(this->Elements, Elements.begin(), Elements.end());
 }
 
 bool StructType::isAggregateType() const { return true; }
@@ -115,42 +115,42 @@ bool StructType::isIntegerType() const {
   return false;
 }
 
-StructType::ElementIterator StructType::getStart() { return elements.begin(); }
+StructType::ElementIterator StructType::getStart() { return Elements.begin(); }
 
-StructType::ElementIterator StructType::getEnd() { return elements.end(); }
+StructType::ElementIterator StructType::getEnd() { return Elements.end(); }
 
 uint64_t StructType::getSize() const {
-  uint64_t size = 0;
-  for (Type *ele : elements) {
-    ABI::Float *some_type;
-    ABI::Integer *int_type;
-    ABI::StructType *struct_type;
+  uint64_t Size = 0;
+  for (Type *Element : Elements) {
+    ABI::Float *SomeType;
+    ABI::Integer *IntType;
+    ABI::StructType *StructTy;
 
-    if ((some_type = llvm::dyn_cast<ABI::Float>(ele))) {
-      size += some_type->getSize();
-    } else if ((int_type = llvm::dyn_cast<ABI::Integer>(ele))) {
-      size += int_type->getSize();
-    } else if ((struct_type = llvm::dyn_cast<ABI::StructType>(ele))) {
-      size += struct_type->getSize();
+    if ((SomeType = llvm::dyn_cast<ABI::Float>(Element))) {
+      Size += SomeType->getSize();
+    } else if ((IntType = llvm::dyn_cast<ABI::Integer>(Element))) {
+      Size += IntType->getSize();
+    } else if ((StructTy = llvm::dyn_cast<ABI::StructType>(Element))) {
+      Size += StructTy->getSize();
     } else {
       assert(0 && "don't konw how to calculate size for struct type!");
     }
   }
-  return size;
+  return Size;
 }
 
 bool StructType::isFloat() const { return false; }
 
-bool StructType::classof(const Type *type) {
-  return type->getKind() == Type::TypeKind::StructType;
+bool StructType::classof(const Type *Ty) {
+  return Ty->getKind() == Type::TypeKind::StructType;
 }
 
 void StructType::dump() const {
   // ece
   std::cout << "{ ";
-  for (std::size_t i = 0; i < elements.size(); ++i) {
-    elements[i]->dump();
-    if (i != elements.size() - 1)
+  for (std::size_t i = 0; i < Elements.size(); ++i) {
+    Elements[i]->dump();
+    if (i != Elements.size() - 1)
       std::cout << ",";
   }
   std::cout << " }";
@@ -158,14 +158,13 @@ void StructType::dump() const {
 
 Float::Float() : ::Type(TypeKind::Float), Size(4), Alignment(4) {}
 
-
 bool Float::isIntegerType() const { return false; }
 bool Float::isFloat() const { return true; }
 bool Float::isAggregateType() const { return false; }
 uint64_t Float::getSize() const { return Size; }
 
-bool Float::classof(const Type *type) {
-  return type->getKind() == Type::TypeKind::Float;
+bool Float::classof(const Type *Ty) {
+  return Ty->getKind() == Type::TypeKind::Float;
 }
 
 void Float::dump() const { std::cout << "Float" << Size * 8; }

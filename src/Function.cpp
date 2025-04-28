@@ -1,6 +1,5 @@
 #include "Function.h"
 #include <iostream>
-#include <vector>
 
 using namespace ABI;
 
@@ -15,23 +14,23 @@ FunctionInfo::FunctionInfo(llvm::SmallVector<Type *> args, Type *ret,
   }
 }
 
-FunctionInfo::ArgIter FunctionInfo::GetArgBegin() { return Args.begin(); }
+FunctionInfo::ArgIter FunctionInfo::getArgBegin() { return Args.begin(); }
 
-FunctionInfo::ArgIter FunctionInfo::GetArgEnd() { return Args.end(); }
+FunctionInfo::ArgIter FunctionInfo::getArgEnd() { return Args.end(); }
 
 ABIArgInfo::ABIArgInfo() {}
 
-ABIArgKind ABIArgInfo::GetKind() const { return Kind; }
+ABIArgKind ABIArgInfo::getKind() const { return Kind; }
 
 ABIArgInfo::ABIArgInfo(ABIArgKind kind, llvm::Type *type)
-    : Kind(kind), type(type) {}
+    : Kind(kind), Ty(type) {}
 
 FunctionArgInfo FunctionInfo::getReturnInfo() const { return RetInfo; }
 
 void FunctionInfo::setABIReturnInfo(const ABIArgInfo &info) {
   RetInfo.Info = info;
 }
-llvm::Type *ABIArgInfo::getType() const { return type; }
+llvm::Type *ABIArgInfo::getType() const { return Ty; }
 
 void FunctionInfo::dump() const {
 

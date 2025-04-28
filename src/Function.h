@@ -67,14 +67,14 @@ class ABIArgInfo {
 public:
 private:
   ABIArgKind Kind;
-  llvm::Type *type;
+  llvm::Type *Ty;
 
 public:
   // set Kind to Direct for Register
   ABIArgInfo();
-  ABIArgInfo(ABIArgKind kind, llvm::Type *type);
+  ABIArgInfo(ABIArgKind Kind, llvm::Type *Ty);
 
-  ABIArgKind GetKind() const;
+  ABIArgKind getKind() const;
   llvm::Type *getType() const;
 };
 
@@ -95,14 +95,14 @@ class FunctionInfo {
 public:
   using ArgIter = llvm::SmallVector<FunctionArgInfo>::iterator;
 
-  FunctionInfo(llvm::SmallVector<Type *> args, Type *ret,
-               CallingConvention conv);
+  FunctionInfo(llvm::SmallVector<Type *> Args, Type *Ret,
+               CallingConvention Conv);
 
-  ArgIter GetArgBegin();
-  ArgIter GetArgEnd();
+  ArgIter getArgBegin();
+  ArgIter getArgEnd();
 
   FunctionArgInfo getReturnInfo() const;
-  void setABIReturnInfo(const ABIArgInfo &info);
+  void setABIReturnInfo(const ABIArgInfo &Info);
 
   void dump() const;
 

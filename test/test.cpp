@@ -5,7 +5,6 @@
 #include "llvm/IR/LLVMContext.h"
 #include <assert.h>
 #include <iostream>
-#include <memory>
 
 using namespace ABI;
 
@@ -21,13 +20,13 @@ void TestOne() {
   X86_64ABIInfo abiLowering(context_g);
   abiLowering.ComputeInfo(FI);
 
-  assert(FI.getReturnInfo().Info.GetKind() == Direct);
+  assert(FI.getReturnInfo().Info.getKind() == Direct);
 
-  auto ArgIterator = FI.GetArgBegin();
-  assert(ArgIterator->Info.GetKind() == Direct);
+  auto ArgIterator = FI.getArgBegin();
+  assert(ArgIterator->Info.getKind() == Direct);
 
   ++ArgIterator;
-  assert(ArgIterator->Info.GetKind() == Direct);
+  assert(ArgIterator->Info.getKind() == Direct);
   std::cout << "Passed test one" << std::endl;
 
   FI.dump();
@@ -45,12 +44,12 @@ void TestTwo() {
   X86_64ABIInfo abiLowering(context_g);
   abiLowering.ComputeInfo(FI);
 
-  assert(FI.getReturnInfo().Info.GetKind() == Direct);
+  assert(FI.getReturnInfo().Info.getKind() == Direct);
 
   // struct larger than 4 bytes in the memory
-  auto ArgIterator = FI.GetArgBegin();
+  auto ArgIterator = FI.getArgBegin();
   ABIArgInfo abiInfo = ArgIterator->Info;
-  assert(abiInfo.GetKind() == Indirect);
+  assert(abiInfo.getKind() == Indirect);
 
   FI.dump();
 
@@ -77,11 +76,11 @@ void TestThree() {
   X86_64ABIInfo abiLowering(context);
   abiLowering.ComputeInfo(FI);
 
-  assert(FI.getReturnInfo().Info.GetKind() == Direct);
+  assert(FI.getReturnInfo().Info.getKind() == Direct);
 
-  auto ArgIterator = FI.GetArgBegin();
+  auto ArgIterator = FI.getArgBegin();
   ABIArgInfo abiInfo = ArgIterator->Info;
-  assert(abiInfo.GetKind() == Direct);
+  assert(abiInfo.getKind() == Direct);
 
   FI.dump();
 
@@ -110,11 +109,11 @@ void TestFour() {
   X86_64ABIInfo abiLowering(context);
   abiLowering.ComputeInfo(FI);
 
-  assert(FI.getReturnInfo().Info.GetKind() == Direct);
+  assert(FI.getReturnInfo().Info.getKind() == Direct);
 
-  auto ArgIterator = FI.GetArgBegin();
+  auto ArgIterator = FI.getArgBegin();
   ABIArgInfo abiInfo = ArgIterator->Info;
-  assert(abiInfo.GetKind() == Direct);
+  assert(abiInfo.getKind() == Direct);
 
   FI.dump();
 
@@ -145,11 +144,11 @@ void TestFive() {
   X86_64ABIInfo abiLowering(context);
   abiLowering.ComputeInfo(FI);
 
-  assert(FI.getReturnInfo().Info.GetKind() == Direct);
+  assert(FI.getReturnInfo().Info.getKind() == Direct);
 
-  auto ArgIterator = FI.GetArgBegin();
+  auto ArgIterator = FI.getArgBegin();
   ABIArgInfo abiInfo = ArgIterator->Info;
-  assert(abiInfo.GetKind() == Indirect);
+  assert(abiInfo.getKind() == Indirect);
 
   FI.dump();
 
@@ -181,7 +180,7 @@ void TestSix() {
 
   FI.dump();
 
-  assert(FI.getReturnInfo().Info.GetKind() == Direct);
+  assert(FI.getReturnInfo().Info.getKind() == Direct);
   std::cout << "Passed test six" << std::endl;
 }
 
@@ -203,11 +202,11 @@ void TestSeven() {
   X86_64ABIInfo abiLowering(context);
   abiLowering.ComputeInfo(FI);
 
-  assert(FI.getReturnInfo().Info.GetKind() == Direct);
+  assert(FI.getReturnInfo().Info.getKind() == Direct);
 
-  auto ArgIterator = FI.GetArgBegin();
+  auto ArgIterator = FI.getArgBegin();
   ABIArgInfo abiInfo = ArgIterator->Info;
-  assert(abiInfo.GetKind() == Direct);
+  assert(abiInfo.getKind() == Direct);
   // <2 x float>
   assert(abiInfo.getType() ==
          llvm::FixedVectorType::get(llvm::Type::getFloatTy(context), 2));
@@ -238,11 +237,11 @@ void TestEight() {
   abiLowering.ComputeInfo(FI);
 
   ABIArgInfo abi_return_info = FI.getReturnInfo().Info;
-  assert(abi_return_info.GetKind() == Direct);
+  assert(abi_return_info.getKind() == Direct);
 
-  auto ArgIterator = FI.GetArgBegin();
+  auto ArgIterator = FI.getArgBegin();
   ABIArgInfo abiInfo = ArgIterator->Info;
-  assert(abiInfo.GetKind() == Direct);
+  assert(abiInfo.getKind() == Direct);
 
   // {i64, < 2 x float>}
   assert(abiInfo.getType() ==
@@ -256,14 +255,14 @@ void TestEight() {
 }
 
 void RunTest() {
-   TestOne();
+  TestOne();
   TestTwo();
-   TestThree();
-   TestFour();
-   TestFive();
-   TestSix();
-   TestSeven();
-   TestEight();
+  TestThree();
+  TestFour();
+  TestFive();
+  TestSix();
+  TestSeven();
+  TestEight();
 }
 
 int main() { RunTest(); }

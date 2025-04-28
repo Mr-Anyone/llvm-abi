@@ -9,7 +9,7 @@
 
 using namespace ABI;
 
-X86_64ABIInfo::Class X86_64ABIInfo::Merge(Class one, Class two) {
+X86_64ABIInfo::Class X86_64ABIInfo::Merge(Class One, Class Two) {
   // for a 8 bytes
   // (a) If both classes are equal, this is the resulting class.
   // (b) If one of the classes is NO_CLASS, the resulting class is the other
@@ -19,27 +19,27 @@ X86_64ABIInfo::Class X86_64ABIInfo::Merge(Class one, Class two) {
   // (e) If one of the classes is X87, X87UP, COMPLEX_X87 class, MEMORY is used
   // as class.
   // (f) Otherwise class SSE is used.
-  if (one == two)
-    return one;
-  else if (one == NoClass)
-    return two;
-  else if (two == NoClass)
-    return one;
-  else if (one == Memory || two == Memory)
+  if (One == Two)
+    return One;
+  else if (One == NoClass)
+    return Two;
+  else if (Two == NoClass)
+    return One;
+  else if (One == Memory || Two == Memory)
     return Memory;
-  else if (one == Integer || two == Integer)
+  else if (One == Integer || Two == Integer)
     return Integer;
-  else if (one == X87 || two == X87)
+  else if (One == X87 || Two == X87)
     return Memory;
-  else if (one == X87Up || two == X87Up)
+  else if (One == X87Up || Two == X87Up)
     return Memory;
-  else if (one == Complex || two == Complex)
+  else if (One == Complex || Two == Complex)
     return Complex;
 
   return SSE;
 }
 
-void X86_64ABIInfo::PostMerger(Class &Low, Class &High, uint64_t size) {
+void X86_64ABIInfo::PostMerger(Class &Low, Class &High, uint64_t Size) {
   //     5. Then a post merger cleanup is done:
   // (a) If one of the classes is MEMORY, the whole argument is passed in
   // memory.
@@ -55,13 +55,13 @@ void X86_64ABIInfo::PostMerger(Class &Low, Class &High, uint64_t size) {
     Low = High = Memory;
   } else if (High == SSEUp && Low != SSE) {
     High = SSEUp;
-  } else if (Low != SSE && High != SSEUp && size > 16) {
+  } else if (Low != SSE && High != SSEUp && Size > 16) {
     High = Low = Memory;
   }
 }
 
 // What about High and Low?
-void X86_64ABIInfo::Classify(Type *type, Class &Low, Class &High) {
+void X86_64ABIInfo::Classify(Type *Ty, Class &Low, Class &High) {
   Low = NoClass;
   High = NoClass;
 
@@ -70,12 +70,12 @@ void X86_64ABIInfo::Classify(Type *type, Class &Low, Class &High) {
   // page 17, Classification rule one:
   // 1) Arguments of types (signed and unsigned) _Bool, char, short, int, long,
   // long long, and pointers are in the INTEGER class.
-  ABI::Integer *integer_type;
-  if ((integer_type = llvm::dyn_cast<::Integer>(type))) {
-    if (integer_type->getSize() <= 8) {
+  ABI::Integer *IntegerType;
+  if ((IntegerType = llvm::dyn_cast<::Integer>(Ty))) {
+    if (IntegerType->getSize() <= 8) {
       Low = Integer;
       return;
-    } else if (integer_type->getSize() == 16) {
+    } else if (IntegerType->getSize() == 16) {
       // Arguments of type __int128 offer the same operations as INTEGERs,
       // yet they do not fit into one general purpose register but require two
       //    registers.For classification purpose
@@ -86,11 +86,11 @@ void X86_64ABIInfo::Classify(Type *type, Class &Low, Class &High) {
     }
   }
 
-  ABI::Float *float_type;
+  ABI::Float *FloatType;
   // basically the following type as of so far:
   // float, double, _Decimal32, _Decimal64 and __m64 are in class SSE.
-  if ((float_type = llvm::dyn_cast<::Float>(type))) {
-    if (float_type->getSize() <= 8) {
+  if ((FloatType = llvm::dyn_cast<::Float>(Ty))) {
+    if (FloatType->getSize() <= 8) {
       Low = SSE;
       return;
     }
@@ -99,11 +99,11 @@ void X86_64ABIInfo::Classify(Type *type, Class &Low, Class &High) {
   // Arguments of types __float128, _Decimal128 and __m128 are split
   // into two halves. The least significant ones belong to class SSE, the most
   // significant one to class SSEUP.
-  if (float_type) {
+  if (FloatType) {
     // FIXME: what about _m256?
-    assert(float_type->getSize() != 32 && "unimplemented for m256");
+    assert(FloatType->getSize() != 32 && "unimplemented for m256");
 
-    if (float_type->getSize() == 16) {
+    if (FloatType->getSize() == 16) {
       Low = SSE;
       High = SSEUp;
       return;
@@ -114,13 +114,11 @@ void X86_64ABIInfo::Classify(Type *type, Class &Low, Class &High) {
   // double and __float128 The 64-bit mantissa of arguments of type long double
   // belongs to class X87, the 16-bit exponent plus 6 bytes of padding belongs
   // to class X87UP
-
-  // rename to record type?
-  ABI::StructType *record_type;
-  if ((record_type = llvm::dyn_cast<ABI::StructType>(type))) {
+  ABI::StructType *StructTy;
+  if ((StructTy = llvm::dyn_cast<ABI::StructType>(Ty))) {
     // FIXME: there are cases such as 256 and 512 bit vector where this is not
     // true
-    if (record_type->getSize() > 16) {
+    if (StructTy->getSize() > 16) {
       // The entire class is on memory
       Low = High = Memory;
       return;
@@ -131,8 +129,8 @@ void X86_64ABIInfo::Classify(Type *type, Class &Low, Class &High) {
 
     assert(Low == NoClass && High == NoClass);
     uint64_t current_offset = 0;
-    for (ABI::StructType::ElementIterator it = record_type->getStart(),
-                                          e = record_type->getEnd();
+    for (ABI::StructType::ElementIterator it = StructTy->getStart(),
+                                          e = StructTy->getEnd();
          it != e; ++it) {
 
       Class FieldLow, FieldHigh;
@@ -190,13 +188,13 @@ void X86_64ABIInfo::Classify(Type *type, Class &Low, Class &High) {
   assert(false && "unimplemented!");
 }
 
-llvm::Type *X86_64ABIInfo::getIntegerType(Type *type, uint64_t offset) {
+llvm::Type *X86_64ABIInfo::getIntegerType(Type *Ty, uint64_t offset) {
   // trivial case
-  ABI::Integer *int_type;
-  if ((int_type = llvm::dyn_cast<ABI::Integer>(type))) {
-    if (int_type->getSize() == 4) {
+  ABI::Integer *IntType;
+  if ((IntType = llvm::dyn_cast<ABI::Integer>(Ty))) {
+    if (IntType->getSize() == 4) {
       return llvm::Type::getInt32Ty(Context);
-    } else if (int_type->getSize() == 8) {
+    } else if (IntType->getSize() == 8) {
       return llvm::Type::getInt64Ty(Context);
 
     } else {
@@ -205,34 +203,34 @@ llvm::Type *X86_64ABIInfo::getIntegerType(Type *type, uint64_t offset) {
   }
 
   // not trivial case
-  ABI::StructType *struct_type;
-  if ((struct_type = llvm::dyn_cast<ABI::StructType>(type))) {
-    uint64_t current_offset = 0;
+  ABI::StructType *StructTy;
+  if ((StructTy = llvm::dyn_cast<ABI::StructType>(Ty))) {
+    uint64_t CurrnetOffset = 0;
 
     // increment the iterator until we reach the offset we want
-    auto it = struct_type->getStart(), ie = struct_type->getEnd();
+    auto it = StructTy->getStart(), ie = StructTy->getEnd();
     while (it != ie) {
-      if (current_offset == offset)
+      if (CurrnetOffset == offset)
         break;
-      current_offset += (*it)->getSize();
+      CurrnetOffset += (*it)->getSize();
       ++it;
     }
-    assert(current_offset == offset &&
+    assert(CurrnetOffset == offset &&
            "invalid offset is provided. Are you sure?");
 
     // we can have two float
-    Type *first = *it;
-    Type *second = nullptr;
+    Type *First = *it;
+    Type *Second = nullptr;
     if (it != ie)
-      second = *(++it);
+      Second = *(++it);
 
     // trivial case: there is only one float
-    assert(llvm::isa<ABI::Integer>(first));
+    assert(llvm::isa<ABI::Integer>(First));
     // FIXME: what about uint64_t?
-    if (first && second)
+    if (First && Second)
       return llvm::Type::getInt64Ty(Context);
 
-    if (first && !second)
+    if (First && !Second)
       return llvm::Type::getInt32Ty(Context);
 
     // if (llvm::isa<ABI::Integer>(first) && llvm::isa<ABI::Integer>(second))
@@ -245,43 +243,43 @@ llvm::Type *X86_64ABIInfo::getIntegerType(Type *type, uint64_t offset) {
 }
 
 // offset: the offset required for record type
-llvm::Type *X86_64ABIInfo::getSSEType(Type *type, uint64_t offset) {
-  Float *float_type;
-  if ((float_type = llvm::dyn_cast<Float>(type))) {
-    if (float_type->getSize() == 4)
+llvm::Type *X86_64ABIInfo::getSSEType(Type *Ty, uint64_t Offset) {
+  Float *FloatType;
+  if ((FloatType = llvm::dyn_cast<Float>(Ty))) {
+    if (FloatType->getSize() == 4)
       return llvm::Type::getFloatTy(Context);
     else
       assert("how did we get here?" && false);
   }
 
-  StructType *struct_type;
-  if ((struct_type = llvm::dyn_cast<StructType>(type))) {
-    uint64_t current_offset = 0;
+  StructType *StructTy;
+  if ((StructTy = llvm::dyn_cast<StructType>(Ty))) {
+    uint64_t CurrnetOffset = 0;
 
     // increment the iterator until we reach the offset we want
-    auto it = struct_type->getStart(), ie = struct_type->getEnd();
+    auto it = StructTy->getStart(), ie = StructTy->getEnd();
     while (it != ie) {
-      if (current_offset == offset)
+      if (CurrnetOffset == Offset)
         break;
-      current_offset += (*it)->getSize();
+      CurrnetOffset += (*it)->getSize();
       ++it;
     }
-    assert(current_offset == offset &&
+    assert(CurrnetOffset == Offset &&
            "invalid offset is provided. Are you sure?");
 
     // we can have two float
-    Type *first = *it;
-    Type *second = nullptr;
+    Type *First = *it;
+    Type *Second = nullptr;
     if (it != ie)
-      second = *(++it);
+      Second = *(++it);
 
     // trivial case: there is only one float
-    assert(llvm::isa<Float>(first));
-    if (second && !llvm::isa<Float>(second))
+    assert(llvm::isa<Float>(First));
+    if (Second && !llvm::isa<Float>(Second))
       return llvm::Type::getFloatTy(Context);
 
     // FIXME: what about __fp16 or _Float16?
-    if (llvm::isa<Float>(first) && llvm::isa<Float>(second))
+    if (llvm::isa<Float>(First) && llvm::isa<Float>(Second))
       return llvm::FixedVectorType::get(llvm::Type::getFloatTy(Context), 2);
   }
 
@@ -315,42 +313,42 @@ void X86_64ABIInfo::ComputeInfo(FunctionInfo &FI) {
   // AMD64-ABI 3.2.3p3: Once arguments are classified, the registers
   // get assigned (in left-to-right order) for passing as follows...
   unsigned ArgNo = 0;
-  for (FunctionInfo::ArgIter it = FI.GetArgBegin(), ie = FI.GetArgEnd();
+  for (FunctionInfo::ArgIter it = FI.getArgBegin(), ie = FI.getArgEnd();
        it != ie; ++it, ++ArgNo) {
 
-    Class low;
-    Class high;
-    Classify(it->Ty, low, high);
-    assert(low != NoClass);
+    Class Low;
+    Class High;
+    Classify(it->Ty, Low, High);
+    assert(Low != NoClass);
 
     // dealing with low
     // move this into its own logic
-    llvm::Type *low_type = nullptr;
-    switch (low) {
+    llvm::Type *LowTy = nullptr;
+    switch (Low) {
     case ABI::X86_64ABIInfo::Class::Integer:
       // defined by AMD64-ABI:
-      low_type = getIntegerType(it->Ty, 0);
+      LowTy = getIntegerType(it->Ty, 0);
       if (FreeIntRegs > 0) {
         // Use Register
         // TODO: fixme, nullptr is definitely not correct
-        it->Info = ABIArgInfo(Direct, low_type);
+        it->Info = ABIArgInfo(Direct, LowTy);
       } else {
         // Pushed to the stack
         // TODO: fixme, nullptr is definitely not correct
-        it->Info = ABIArgInfo(Indirect, low_type);
+        it->Info = ABIArgInfo(Indirect, LowTy);
       }
       --FreeIntRegs;
       break;
     case ABI::X86_64ABIInfo::Class::SSE:
       // defined by AMD64-ABI:
-      low_type = getSSEType(it->Ty, 0);
+      LowTy = getSSEType(it->Ty, 0);
       if (FreeSSERegs > 0) {
         // Use Register
-        it->Info = ABIArgInfo(Direct, low_type);
+        it->Info = ABIArgInfo(Direct, LowTy);
       } else {
         // Pushed to the stack
         // TODO: fixme, nullptr is definitely not correct
-        it->Info = ABIArgInfo(Indirect, low_type);
+        it->Info = ABIArgInfo(Indirect, LowTy);
       }
       --FreeSSERegs;
       break;
@@ -364,14 +362,14 @@ void X86_64ABIInfo::ComputeInfo(FunctionInfo &FI) {
       assert(false && "unreachable statement. Not implemented yet");
     }
 
-    llvm::Type *high_type = nullptr;
-    switch (high) {
+    llvm::Type *HighTy = nullptr;
+    switch (High) {
     case ABI::X86_64ABIInfo::Class::SSE:
       // this may not always be correct
-      high_type = getSSEType(it->Ty, 8);
+      HighTy = getSSEType(it->Ty, 8);
       break;
     case ABI::X86_64ABIInfo::Class::Integer:
-      high_type = getIntegerType(it->Ty, 8);
+      HighTy = getIntegerType(it->Ty, 8);
       break;
     case ABI::X86_64ABIInfo::Class::NoClass:
       break;
@@ -383,11 +381,10 @@ void X86_64ABIInfo::ComputeInfo(FunctionInfo &FI) {
     }
 
     // we are making a pair it is direct
-    if (high_type && it->Info.GetKind() == Direct) {
-      assert(low_type && high_type &&
-             "high and low type cannot both be nullptr");
-      llvm::StructType *final_type = llvm::StructType::get(low_type, high_type);
-      it->Info = ABIArgInfo(Direct, final_type);
+    if (HighTy && it->Info.getKind() == Direct) {
+      assert(LowTy && HighTy && "high and low type cannot both be nullptr");
+      llvm::StructType *FinalType = llvm::StructType::get(LowTy, HighTy);
+      it->Info = ABIArgInfo(Direct, FinalType);
     }
 
     // assert(high == NoClass);

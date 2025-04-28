@@ -17,12 +17,12 @@ private:
   const TypeKind Kind;
 
 public:
-  Type(TypeKind kind);
+  Type(TypeKind Kind);
   TypeKind getKind() const;
 
   // Is this even a correct approach?
   // FIXME: make this a const
-  llvm::Type *toLLVM(llvm::LLVMContext &context);
+  llvm::Type *toLLVM(llvm::LLVMContext &Context);
   uint64_t getSize() const;
 
   // write to stdin
@@ -40,8 +40,8 @@ public:
   // write to stdin
   void dump() const;
 
-  static bool classof(const Type *type) {
-    return type->getKind() == TypeKind::PointerType;
+  static bool classof(const Type *Ty) {
+    return Ty->getKind() == TypeKind::PointerType;
   }
 
 private:
@@ -52,7 +52,6 @@ class Float : public Type {
 public:
   Float();
 
-
   uint64_t getSize() const;
   uint64_t getAlignment() const;
 
@@ -60,7 +59,7 @@ public:
   bool isFloat() const;
   bool isAggregateType() const;
 
-  static bool classof(const Type *type);
+  static bool classof(const Type *Ty);
 
   // write to stdin
   void dump() const;
@@ -72,7 +71,7 @@ private:
 
 class Integer : public Type {
 public:
-  Integer(uint64_t size);
+  Integer(uint64_t Size);
 
   // default size of 4 bytes
   Integer();
@@ -84,7 +83,7 @@ public:
   uint64_t getSize() const;
   uint64_t getAlignment() const;
 
-  static bool classof(const Type *type);
+  static bool classof(const Type *Ty);
 
   // write to stdin
   void dump() const;
@@ -105,7 +104,7 @@ public:
 
   // FIXME: think of a more intelligent way of passing parameter
   // there is also a question of alignmnet?
-  StructType(llvm::SmallVector<Type *> elements);
+  StructType(llvm::SmallVector<Type *> Elements);
 
   bool isHomogeneousType();
   uint64_t getSize() const;
@@ -118,13 +117,13 @@ public:
   bool isAggregateType() const;
   bool isFloat() const;
 
-  static bool classof(const Type *type);
+  static bool classof(const Type *Ty);
 
   // write to stdin
   void dump() const;
 
 private:
-  llvm::SmallVector<Type *> elements;
+  llvm::SmallVector<Type *> Elements;
 };
 
 } // namespace ABI

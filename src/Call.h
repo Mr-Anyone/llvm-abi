@@ -4,7 +4,6 @@
 #include "Function.h"
 #include "Type.h"
 #include "llvm/IR/LLVMContext.h"
-#include <memory>
 #include <stdint.h>
 
 namespace ABI {
@@ -33,18 +32,18 @@ public:
     Memory,
   };
 
-  X86_64ABIInfo(llvm::LLVMContext &context) : Context(context) {}
+  X86_64ABIInfo(llvm::LLVMContext &Context) : Context(Context) {}
 
   virtual void ComputeInfo(FunctionInfo &FI) override;
 
 private:
   llvm::LLVMContext &Context;
 
-  llvm::Type *getSSEType(Type *type, uint64_t offset);
-  llvm::Type *getIntegerType(Type *type, uint64_t offset);
+  llvm::Type *getSSEType(Type *Ty, uint64_t offset);
+  llvm::Type *getIntegerType(Type *Ty, uint64_t offset);
 
-  void Classify(Type *type, Class &Low, Class &High);
-  Class Merge(Class one, Class two);
+  void Classify(Type *Ty, Class &Low, Class &High);
+  Class Merge(Class One, Class Two);
   void PostMerger(Class &Low, Class &High, uint64_t size);
 };
 } // namespace ABI
